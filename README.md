@@ -108,6 +108,8 @@ Tools/
 
 ## Paketleme
 
+### Doğrudan dağıtım (DMG)
+
 ```bash
 ./Tools/make_dmg.sh                                   # ad-hoc imza (yerel kullanım)
 ./Tools/make_dmg.sh "Developer ID Application: Ad (TEAMID)"   # dağıtım için
@@ -122,6 +124,34 @@ xcrun notarytool submit dist/MarkPad-1.0.dmg \
   --apple-id <apple-id> --team-id <TEAMID> --wait
 xcrun stapler staple dist/MarkPad-1.0.dmg
 ```
+
+### Mac App Store
+
+Proje App Store gereksinimlerini karşılayacak şekilde hazırlandı:
+
+| Gereksinim | Durum |
+|---|---|
+| App Sandbox | ✅ açık |
+| Asset catalog ikonu (1024×1024 dahil) | ✅ `Resources/Assets.xcassets` |
+| `PrivacyInfo.xcprivacy` (uygulama + eklenti) | ✅ veri toplanmıyor, `UserDefaults` için `CA92.1` |
+| `LSApplicationCategoryType` | ✅ Developer Tools |
+| Şifreleme beyanı | ✅ `ITSAppUsesNonExemptEncryption = false` |
+
+Kalan adımlar hesap gerektiriyor:
+
+1. Apple Developer Program üyeliği (yıllık 99 USD).
+2. Developer portalında kimlikleri kaydet: `com.caglar.MarkPad`,
+   `com.caglar.MarkPad.QuickLook` ve App Group.
+3. App Group'u geri ekle — Team ID öneki zorunlu olduğu için ad
+   `group.<TeamID>.com.caglar.MarkPad` olmalı. İki `.entitlements` dosyasına da
+   eklenmeli; bu sayede Quick Look önizlemesi uygulamanın tema ve font
+   ayarlarını kullanır.
+4. Xcode → hedef → Signing & Capabilities → Team seç, otomatik imzalama açık.
+5. Product → Archive → Distribute App → App Store Connect.
+6. App Store Connect'te kayıt: ekran görüntüsü (2560×1600 veya 1280×800),
+   açıklama, gizlilik politikası URL'si, destek URL'si.
+
+Mac App Store için notarization gerekmez; o yalnızca Developer ID dağıtımı içindir.
 
 ## Geliştirme fikirleri
 

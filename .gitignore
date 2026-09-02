@@ -8,9 +8,9 @@ dist/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 
-# Ikon ara ciktisi (Tools/MakeIcon.swift ile uretilir; AppIcon.icns commit edilir)
+# Ikon ara ciktisi (Tools/MakeIcon.swift ile uretilir).
+# Assets.xcassets commit edilir; iconset yalnizca .icns uretmek icin.
 Resources/AppIcon.iconset/
-Resources/icon-preview.png
 
 # macOS
 .DS_Store

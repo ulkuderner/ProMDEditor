@@ -32,7 +32,8 @@ targets:
       - path: Sources/App
         excludes: ["Info.plist", "*.entitlements"]
       - path: Sources/Shared
-      - path: Resources/AppIcon.icns
+      - path: Resources/Assets.xcassets
+      - path: Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
     dependencies:
       - package: Markdown
@@ -47,6 +48,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad
         INFOPLIST_FILE: Sources/App/Info.plist
         CODE_SIGN_ENTITLEMENTS: Sources/App/MarkPad.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
 

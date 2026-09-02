@@ -169,7 +169,49 @@ for (name, size) in variants {
     write(drawIcon(size: size), to: iconset.appendingPathComponent("\(name).png"))
 }
 
-// Onizleme icin ayri bir 1024 kopya
-write(drawIcon(size: 1024), to: outDir.appendingPathComponent("icon-preview.png"))
+// MARK: - Asset catalog (Mac App Store bunu zorunlu tutuyor)
+
+let assets = outDir.appendingPathComponent("Assets.xcassets")
+let appicon = assets.appendingPathComponent("AppIcon.appiconset")
+try? FileManager.default.createDirectory(at: appicon, withIntermediateDirectories: true)
+
+for (name, size) in variants {
+    write(drawIcon(size: size), to: appicon.appendingPathComponent("\(name).png"))
+}
+
+let catalogRoot = #"""
+{
+  "info" : { "author" : "xcode", "version" : 1 }
+}
+"""#
+try? catalogRoot.write(to: assets.appendingPathComponent("Contents.json"),
+                       atomically: true, encoding: .utf8)
+
+// idiom "mac": 16/32/128/256/512 pt, her biri 1x ve 2x
+let images = variants.map { name, _ -> String in
+    let base = name.replacingOccurrences(of: "@2x", with: "")
+    let pt = base.replacingOccurrences(of: "icon_", with: "")
+    let scale = name.hasSuffix("@2x") ? "2x" : "1x"
+    return """
+        {
+          "filename" : "\(name).png",
+          "idiom" : "mac",
+          "scale" : "\(scale)",
+          "size" : "\(pt)"
+        }
+    """
+}.joined(separator: ",\n")
+
+let catalogContents = """
+{
+  "images" : [
+\(images)
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}
+"""
+try? catalogContents.write(to: appicon.appendingPathComponent("Contents.json"),
+                           atomically: true, encoding: .utf8)
 
 print("Uretildi: \(iconset.path)")
+print("Uretildi: \(appicon.path)")
