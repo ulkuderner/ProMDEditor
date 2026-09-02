@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Derle ve kontrolleri calistir
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode surumunu yaz
+        run: xcodebuild -version
+
+      - name: XcodeGen kur
+        run: brew install xcodegen
+
+      - name: Swift paketlerini onbellekle
+        uses: actions/cache@v4
+        with:
+          path: .build/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('project.yml') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Projeyi uret
+        run: xcodegen generate
+
+      - name: Tema kontrastlarini dogrula
+        # Esigin altinda tema kalirsa script 1 dondurur ve is basarisiz olur.
+        run: python3 Tools/fix_contrast.py --check
+
+      - name: Debug derleme
+        run: |
+          set -o pipefail
+          xcodebuild -project MarkPad.xcodeproj -scheme MarkPad \
+            -configuration Debug -destination 'platform=macOS' \
+            -derivedDataPath .build \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" \
+            DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" \
+            build | xcpretty || xcodebuild -project MarkPad.xcodeproj \
+            -scheme MarkPad -configuration Debug -destination 'platform=macOS' \
+            -derivedDataPath .build CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" \
+            DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" build
+
+      - name: Quick Look eklentisi pakete girdi mi
+        run: |
+          APP=.build/Build/Products/Debug/MarkPad.app
+          test -d "$APP/Contents/PlugIns/MarkPadQuickLook.appex" \
+            || { echo "::error::Quick Look eklentisi eksik"; exit 1; }
+          test -f "$APP/Contents/Resources/AppIcon.icns" \
+            || { echo "::error::Uygulama ikonu eksik"; exit 1; }
+          echo "Paket icerigi dogrulandi"

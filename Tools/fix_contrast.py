@@ -121,6 +121,16 @@ def main():
               f"   {', '.join(diff) if diff else '-'}")
     print(f"\n{len(report)} tema · {changes} tanesi guncellendi")
 
+    # --check modunda hicbir sey yazilmaz; esigin altinda tema varsa
+    # cikis kodu 1 olur (CI bu sayede kirmiziya doner).
+    if check_only:
+        failing = [name for name, _o, _n, diff in report if diff]
+        if failing:
+            print(f"\nEsigin altinda {len(failing)} tema: {', '.join(failing)}")
+            return 1
+        print("Tum temalar kontrast hedeflerini karsiliyor.")
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,70 @@
+name: Release
+
+# v ile baslayan bir etiket gonderildiginde DMG uretip Release olusturur:
+#   git tag v1.0 && git push origin v1.0
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Surum etiketi (orn. v1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    name: DMG uret ve yayinla
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: XcodeGen kur
+        run: brew install xcodegen
+
+      - name: DMG olustur
+        # Imza yok: ad-hoc. Developer ID sertifikasi eklendiginde
+        # asagidaki komuta kimlik adi parametre olarak gecilir.
+        run: ./Tools/make_dmg.sh
+
+      - name: Cikti bilgisi
+        id: info
+        run: |
+          DMG=$(ls dist/*.dmg | head -1)
+          echo "path=$DMG" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$DMG")" >> "$GITHUB_OUTPUT"
+          shasum -a 256 "$DMG" | tee dist/SHA256SUMS.txt
+
+      - name: Yapiti sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.info.outputs.name }}
+          path: dist/*
+
+      - name: Release olustur
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.dmg
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
+          body: |
+            ## Kurulum
+
+            DMG'yi açıp MarkPad'i Applications klasörüne sürükleyin.
+
+            Quick Look önizlemesini etkinleştirmek için:
+
+            ```bash
+            pluginkit -a /Applications/MarkPad.app/Contents/PlugIns/MarkPadQuickLook.appex
+            qlmanage -r && killall Finder
+            ```
+
+            > **Not:** Bu paket ad-hoc imzalıdır, notarize edilmemiştir. macOS
+            > açılışta uyarı verecektir. İlk açılışta uygulamaya sağ tıklayıp
+            > **Aç** deyin veya şunu çalıştırın:
+            > `xattr -dr com.apple.quarantine /Applications/MarkPad.app`
