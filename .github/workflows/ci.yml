@@ -51,11 +51,32 @@ jobs:
             -derivedDataPath .build CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" \
             DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" build
 
-      - name: Quick Look eklentisi pakete girdi mi
+      - name: Paket icerigini dogrula
         run: |
           APP=.build/Build/Products/Debug/MarkPad.app
+          fail() { echo "::error::$1"; exit 1; }
+
           test -d "$APP/Contents/PlugIns/MarkPadQuickLook.appex" \
-            || { echo "::error::Quick Look eklentisi eksik"; exit 1; }
-          test -f "$APP/Contents/Resources/AppIcon.icns" \
-            || { echo "::error::Uygulama ikonu eksik"; exit 1; }
-          echo "Paket icerigi dogrulandi"
+            || fail "Quick Look eklentisi eksik"
+
+          # App Store: ikon asset catalog'dan gelmeli (.icns'i actool uretir)
+          test -f "$APP/Contents/Resources/Assets.car" || fail "Assets.car eksik"
+          test "$(plutil -extract CFBundleIconName raw "$APP/Contents/Info.plist")" = "AppIcon" \
+            || fail "CFBundleIconName yanlis"
+          xcrun assetutil --info "$APP/Contents/Resources/Assets.car" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); \
+              sys.exit(0 if 1024 in {e.get('PixelWidth') for e in d} else 1)" \
+            || fail "Asset catalog'da 1024x1024 ikon yok"
+
+          # App Store: privacy manifest her iki pakette de bulunmali
+          test -f "$APP/Contents/Resources/PrivacyInfo.xcprivacy" \
+            || fail "Uygulama privacy manifest eksik"
+          test -f "$APP/Contents/PlugIns/MarkPadQuickLook.appex/Contents/Resources/PrivacyInfo.xcprivacy" \
+            || fail "Eklenti privacy manifest eksik"
+
+          # App Store: sandbox zorunlu
+          codesign -d --entitlements - --xml "$APP" 2>/dev/null \
+            | plutil -convert xml1 -o - - | grep -q "app-sandbox" \
+            || fail "App Sandbox kapali"
+
+          echo "Paket icerigi ve App Store gereksinimleri dogrulandi"
