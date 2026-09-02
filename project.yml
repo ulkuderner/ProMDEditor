@@ -1,0 +1,80 @@
+name: MarkPad
+options:
+  bundleIdPrefix: com.caglar
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+packages:
+  Markdown:
+    url: https://github.com/apple/swift-markdown
+    branch: main
+
+settingGroups:
+  common:
+    base:
+      SWIFT_VERSION: "5.9"
+      MARKETING_VERSION: "1.0"
+      CURRENT_PROJECT_VERSION: "1"
+      ENABLE_HARDENED_RUNTIME: YES
+      CODE_SIGN_STYLE: Automatic
+      SWIFT_EMIT_LOC_STRINGS: YES
+      # Xcode'da "Signing & Capabilities" sekmesinden takimini sec,
+      # ya da asagiya kendi Team ID'ni yaz:
+      # DEVELOPMENT_TEAM: XXXXXXXXXX
+
+targets:
+  MarkPad:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/App
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: Sources/Shared
+      - path: Resources/AppIcon.icns
+        buildPhase: resources
+    dependencies:
+      - package: Markdown
+        product: Markdown
+      - target: MarkPadQuickLook
+        embed: true
+        codeSign: true
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: MarkPad
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad
+        INFOPLIST_FILE: Sources/App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Sources/App/MarkPad.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
+
+  MarkPadQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Sources/QuickLook
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: Sources/Shared
+    dependencies:
+      - package: Markdown
+        product: Markdown
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: MarkPadQuickLook
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.QuickLook
+        INFOPLIST_FILE: Sources/QuickLook/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Sources/QuickLook/QuickLook.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+
+schemes:
+  MarkPad:
+    build:
+      targets:
+        MarkPad: all
+    run:
+      config: Debug
+    archive:
+      config: Release

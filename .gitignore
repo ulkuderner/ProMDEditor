@@ -1,0 +1,16 @@
+# XcodeGen ciktisi (project.yml'den uretilir)
+MarkPad.xcodeproj/
+
+# Derleme
+DerivedData/
+.build/
+dist/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+
+# Ikon ara ciktisi (Tools/MakeIcon.swift ile uretilir; AppIcon.icns commit edilir)
+Resources/AppIcon.iconset/
+Resources/icon-preview.png
+
+# macOS
+.DS_Store
