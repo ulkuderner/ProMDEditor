@@ -61,6 +61,16 @@ struct MarkPadCommands: Commands {
                 .keyboardShortcut("2", modifiers: [.command])
             Button("Yalnızca Önizleme") { post(.setMode, mode: .preview) }
                 .keyboardShortcut("3", modifiers: [.command])
+            Button("Karşılaştır") { post(.setMode, mode: .compare) }
+                .keyboardShortcut("4", modifiers: [.command])
+        }
+
+        CommandGroup(after: .newItem) {
+            Button("Dosya ile Karşılaştır…") {
+                NotificationCenter.default.post(name: .setMode, object: ViewMode.compare)
+                NotificationCenter.default.post(name: .markPadChooseCompareFile, object: nil)
+            }
+            .keyboardShortcut("d", modifiers: [.command, .shift])
         }
     }
 
@@ -80,6 +90,7 @@ struct MarkPadCommands: Commands {
 extension Notification.Name {
     static let markPadFormat = Notification.Name("markPadFormat")
     static let setMode = Notification.Name("markPadSetMode")
+    static let markPadChooseCompareFile = Notification.Name("markPadChooseCompareFile")
 }
 
 /// Standart "Hakkında" panelini yazar bilgisiyle gosterir.

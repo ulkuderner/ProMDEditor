@@ -9,8 +9,10 @@ struct ContentView: View {
 
     @EnvironmentObject private var settings: AppSettings
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.controlActiveState) private var controlActiveState
 
     @StateObject private var controller = EditorController()
+    @StateObject private var compare = CompareController()
     @State private var mode: ViewMode = .split
     @State private var renderedHTML: String = ""
     @State private var editorScroll: Double = 0
@@ -43,6 +45,11 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .setMode)) { note in
             if let m = note.object as? ViewMode { mode = m }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .markPadChooseCompareFile)) { _ in
+            guard controlActiveState == .key else { return }
+            compare.chooseFile()
+            compare.recompute(against: text)
+        }
     }
 
     // MARK: - Govde
@@ -59,6 +66,9 @@ struct ContentView: View {
                 editor.frame(minWidth: 280)
                 preview.frame(minWidth: 280)
             }
+        case .compare:
+            CompareView(documentText: $text, controller: compare,
+                        theme: theme, settings: settings)
         }
     }
 
@@ -80,9 +90,14 @@ struct ContentView: View {
 
     private var statusBar: some View {
         HStack(spacing: 14) {
-            Text("\(wordCount) kelime")
-            Text("\(text.count) karakter")
-            Text("\(text.components(separatedBy: .newlines).count) satır")
+            if mode == .compare {
+                Text("\(compare.result.hunks.count) fark bloğu")
+                if compare.otherIsDirty { Text("karşı dosya kaydedilmedi").foregroundStyle(.orange) }
+            } else {
+                Text("\(wordCount) kelime")
+                Text("\(text.count) karakter")
+                Text("\(text.components(separatedBy: .newlines).count) satır")
+            }
             Spacer()
             Text("~\(max(1, wordCount / 200)) dk okuma")
         }
