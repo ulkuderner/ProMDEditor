@@ -46,7 +46,7 @@ Quick Look eklentisi bu projeye özgü.
 
 ```bash
 brew install xcodegen          # tek seferlik
-cd ~/ProMD
+cd ~/MarkPad
 xcodegen generate
 open MarkPad.xcodeproj
 ```
