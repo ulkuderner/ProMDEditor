@@ -2,6 +2,12 @@
 
 *Bu Türkçe sürümdür; güncel ve kanonik metin [README.md](README.md) (İngilizce).*
 
+> **Ad neden değişti.** Bu proje *MarkPad* olarak başladı. O ad App Store'da
+> alınmış olduğu için uygulama **ProMDEditor** adıyla yayımlanıyor. Yalnızca
+> kullanıcıya görünen ad değişti — Xcode projesi, hedefler, Swift modülü ve
+> bundle kimlikleri hâlâ `MarkPad`; bu kimlikler Apple'da kayıtlı olduğu için
+> öyle kalıyor.
+
 macOS için Markdown düzenleyici + görüntüleyici + **Quick Look** eklentisi.
 Finder'da bir `.md` dosyası seçip boşluk tuşuna bastığında render edilmiş halini gösterir;
 uygulamanın kendisi ise canlı biçimlendirmeli bir editör ve yan panelde önizleme sunar.

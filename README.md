@@ -9,6 +9,12 @@ formatting. The character you type is the character on disk.
 
 *[Türkçe README](README.tr.md)*
 
+> **Why the name changed.** This project started life as *MarkPad*. That name
+> was already taken on the App Store, so the app ships as **ProMDEditor**. Only
+> the user-facing name changed — the Xcode project, the targets, the Swift module
+> and the bundle identifiers are still `MarkPad`, and stay that way because those
+> identifiers are registered with Apple.
+
 ## Features
 
 - **Live formatting.** Headings render at their real size, `**bold**` is bold,
@@ -64,11 +70,8 @@ xcodegen generate
 open MarkPad.xcodeproj
 ```
 
-> **On the naming.** The product is called ProMDEditor, but the Xcode project,
-> the targets and the Swift module are still named `MarkPad` — the app was
-> renamed after the name was taken on the App Store, and only the user-facing
-> name changed. Bundle identifiers (`com.caglar.MarkPad`) stayed put too,
-> because they are already registered with Apple.
+> Remember that the project and target names are `MarkPad`, not ProMDEditor —
+> see the note at the top.
 
 In Xcode:
 
