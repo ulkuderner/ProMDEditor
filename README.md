@@ -184,3 +184,4 @@ Mac App Store için notarization gerekmez; o yalnızca Developer ID dağıtımı
 ## Lisans
 
 MIT.
+> 

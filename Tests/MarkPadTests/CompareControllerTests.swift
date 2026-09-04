@@ -256,4 +256,43 @@ final class CompareControllerTests: XCTestCase {
         XCTAssertFalse(c.result.hunks.isEmpty, "otherText degisince diff guncellenmeli")
         XCTAssertTrue(c.otherIsDirty)
     }
+    // MARK: - Surukle birak dosya suzgeci
+
+    func testMarkdownVeMetinUzantilariKabulEdilir() {
+        for ad in ["a.md", "a.markdown", "a.txt", "a.text", "a.mdown"] {
+            XCTAssertTrue(CompareController.isComparableTextFile(URL(fileURLWithPath: "/tmp/\(ad)")),
+                          "\(ad) kabul edilmeliydi")
+        }
+    }
+
+    func testIkiliDosyalarReddedilir() {
+        for ad in ["a.png", "a.pdf", "a.zip", "a.docx", "a.mp4"] {
+            XCTAssertFalse(CompareController.isComparableTextFile(URL(fileURLWithPath: "/tmp/\(ad)")),
+                           "\(ad) reddedilmeliydi")
+        }
+    }
+
+    func testUzantisizVeTanimsizDosyaReddedilir() {
+        XCTAssertFalse(CompareController.isComparableTextFile(URL(fileURLWithPath: "/tmp/LICENSE")))
+        XCTAssertFalse(CompareController.isComparableTextFile(
+            URL(fileURLWithPath: "/tmp/a.zzzbilinmeyenuzanti")))
+    }
+
+    func testBirakilanMetinDosyasiKarsilastirmaHedefiOlur() throws {
+        let url = try yaz("birakilan.md", "a\nY\nc\n")
+        let c = yeniDenetleyici()
+        XCTAssertTrue(c.acceptDroppedFile(url, documentText: "a\nX\nc\n"))
+        XCTAssertEqual(c.otherURL, url)
+        XCTAssertEqual(c.result.hunks.count, 1, "birakma sonrasi diff hesaplanmali")
+        XCTAssertNil(c.alertMessage)
+    }
+
+    func testBirakilanIkiliDosyaReddedilirVeUyariVerir() throws {
+        let url = try yaz("resim.png", "sahte")
+        let c = yeniDenetleyici()
+        XCTAssertFalse(c.acceptDroppedFile(url, documentText: "a\n"))
+        XCTAssertNil(c.otherURL, "reddedilen dosya hedef olmamali")
+        XCTAssertNotNil(c.alertMessage, "kullaniciya sebep soylenmeli")
+    }
+
 }

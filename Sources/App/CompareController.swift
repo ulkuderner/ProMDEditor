@@ -78,6 +78,40 @@ final class CompareController: ObservableObject {
 
     // MARK: - Dosya secme ve okuma
 
+    /// Surukle-birak ve panel icin kabul edilen dosya turleri.
+    ///
+    /// Uzantiya degil, `UTType` agacina bakariz: boylece `.mdown`, `.mkd` gibi
+    /// Markdown lehceleri ve `public.plain-text`'e uyan her metin turu (ornegin
+    /// `.log`, `.json`) tek kuralla gecer, ikili dosyalar elenir. Uzantisi
+    /// olmayan ya da sistemin tanimadigi dosyalar da elenir — karsilastirma
+    /// metin uzerinde calisir, ikili icerik anlamli fark uretmez.
+    nonisolated static func isComparableTextFile(_ url: URL) -> Bool {
+        guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+        return type.conforms(to: .plainText) || type.conforms(to: .markdown)
+    }
+
+    /// Surukle-birakla gelen dosyayi karsilastirma hedefi yapar.
+    ///
+    /// Birakma, sandbox'in kullanici hareketi saydigi yollardan biridir —
+    /// `NSOpenPanel` gibi erisim verir, ek entitlement gerekmez.
+    /// - Returns: dosya kabul edildiyse true.
+    @discardableResult
+    func acceptDroppedFile(_ url: URL, documentText: String) -> Bool {
+        guard Self.isComparableTextFile(url) else {
+            alertMessage = "\(url.lastPathComponent) metin dosyası değil; karşılaştırılamıyor."
+            return false
+        }
+        do {
+            guard try load(url: url) else { return false }
+            storeBookmark(url)
+            recompute(against: documentText)
+            return true
+        } catch {
+            alertMessage = "Dosya açılamadı: \(error.localizedDescription)"
+            return false
+        }
+    }
+
     func chooseFile() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.markdown, .plainText]

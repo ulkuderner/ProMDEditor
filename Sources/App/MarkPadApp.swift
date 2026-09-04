@@ -4,6 +4,7 @@ import AppKit
 @main
 struct MarkPadApp: App {
 
+    @NSApplicationDelegateAdaptor(MarkPadAppDelegate.self) private var appDelegate
     @StateObject private var settings = AppSettings.shared
 
     var body: some Scene {
@@ -21,6 +22,19 @@ struct MarkPadApp: App {
                 .environmentObject(settings)
                 .frame(width: 520, height: 520)
         }
+    }
+}
+
+/// Uygulama dosya acmadan baslatildiginda bos bir belge acar.
+///
+/// Info.plist'teki `NSShowAppCentricOpenPanelInsteadOfUntitledFile = NO` ile
+/// birlikte calisir: o anahtar acilistaki "Ac" panelini kapatir, buradaki
+/// delegate de yerine adsiz bir belge olusturulmasini soyler. Ikisinden biri
+/// eksik olursa uygulama yine dosya secme penceresiyle acilir.
+final class MarkPadAppDelegate: NSObject, NSApplicationDelegate {
+
+    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
+        true
     }
 }
 

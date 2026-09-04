@@ -17,6 +17,15 @@ struct CompareView: View {
     /// Acilmis katlama seritlerinin kimlikleri.
     @State private var expandedFolds: Set<Int> = []
 
+    /// Birakma bolgesinin uzerinde suruklenen bir dosya var mi.
+    @State private var isDropTargeted = false
+
+    /// Bir tarafin hucre genisligi. Sabit genislik, iki panelin ve bos
+    /// durumdaki onizlemenin ayni hizada kalmasini garanti eder.
+    private let cellWidth: CGFloat = 460
+    /// Satir isareti (+/-/~) ve aktarma dugmelerinin oldugu orta oluk.
+    private let gutterWidth: CGFloat = 62
+
     private var palette: DiffPalette { DiffPalette.forTheme(theme) }
     private var font: Font { Font(settings.editorFont() as CTFont) }
 
@@ -80,17 +89,63 @@ struct CompareView: View {
         .padding(.vertical, 6)
     }
 
+    /// Karsi dosya secilmeden onceki duzen: solda acik belgenin satirlari,
+    /// sagda birakma bolgesi.
+    ///
+    /// Tablo ile ayni hucre genisliklerini kullanir; boylece dosya secilince
+    /// sol sutun yerinden oynamaz, yalnizca sag taraf dolar.
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: 34)).foregroundStyle(.secondary)
-            Text("Bu belgeyi başka bir dosyayla karşılaştır.")
-                .foregroundStyle(.secondary)
-            Button("Karşılaştırılacak dosyayı seç…") { chooseAndRecompute() }
-            Spacer()
+        HStack(spacing: 0) {
+            documentPreview
+            Spacer().frame(width: gutterWidth)
+            dropZone
         }
-        .frame(maxWidth: .infinity)
+    }
+
+    /// Acik belgenin salt okunur onizlemesi. Oluk dugmesi yok — henuz
+    /// aktarilacak bir karsi taraf yok.
+    private var documentPreview: some View {
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(documentLines.enumerated()), id: \.offset) { index, line in
+                    cell(number: index,
+                         spans: [InlineSpan(text: line, changed: false)],
+                         bg: .clear, strong: .clear)
+                }
+            }
+            .padding(.vertical, 6)
+        }
+        .frame(width: cellWidth)
+    }
+
+    private var documentLines: [String] { TextDiff.split(documentText).lines }
+
+    private var dropZone: some View {
+        VStack(spacing: 10) {
+            Image(systemName: isDropTargeted ? "arrow.down.doc.fill" : "arrow.down.doc")
+                .font(.system(size: 32))
+                .foregroundStyle(isDropTargeted ? Color.accentColor : Color.secondary)
+            Text("Karşılaştırılacak dosyayı buraya sürükle")
+                .foregroundStyle(.secondary)
+            Text("veya")
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+            Button("Dosya seç…") { chooseAndRecompute() }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(isDropTargeted ? Color.accentColor
+                                             : Color(nsColor: theme.nsMuted).opacity(0.45),
+                              style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                .padding(10)
+        )
+        // Birakma, sandbox'in kullanici hareketi saydigi yollardan biridir;
+        // NSOpenPanel gibi erisim verir, ek entitlement gerekmez.
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first else { return false }
+            return controller.acceptDroppedFile(url, documentText: documentText)
+        } isTargeted: { isDropTargeted = $0 }
     }
 
     private func message(_ s: String) -> some View {
@@ -168,7 +223,7 @@ struct CompareView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 1)
-        .frame(width: 460, alignment: .leading)
+        .frame(width: cellWidth, alignment: .leading)
         .background(bg)
     }
 
@@ -230,7 +285,7 @@ struct CompareView: View {
                 Spacer().frame(width: 40)
             }
         }
-        .frame(width: 62)
+        .frame(width: gutterWidth)
     }
 
     /// Renk tek sinyal olmasin diye her satirin isareti.
