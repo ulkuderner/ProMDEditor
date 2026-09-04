@@ -1,135 +1,169 @@
 # ProMDEditor
 
-macOS için Markdown düzenleyici + görüntüleyici + **Quick Look** eklentisi.
-Finder'da bir `.md` dosyası seçip boşluk tuşuna bastığında render edilmiş halini gösterir;
-uygulamanın kendisi ise canlı biçimlendirmeli bir editör ve yan panelde önizleme sunar.
+A Markdown editor, viewer and **Quick Look** extension for macOS.
+Select a `.md` file in Finder and press space to see it rendered; open it in the
+app and you get live formatting with a side-by-side preview.
 
-Dosya her zaman **düz `.md`** olarak saklanır — WYSIWYG dönüşüm kaybı yok.
+Your file is always stored as **plain `.md`** — no WYSIWYG round-trip, no lost
+formatting. The character you type is the character on disk.
 
-## Özellikler
+*[Türkçe README](README.tr.md)*
 
-- Canlı sözdizimi biçimlendirmesi: başlıklar gerçek boyutta, `**kalın**` kalın, `*italik*` italik,
-  kod tek aralıklı ve arka planlı, bağlantılar renkli. Markdown işaretleri soluk gri.
-- ⌘B / ⌘I / ⌘K / ⌘E ve tüm biçim menüsü — seçime uygulanır, ikinci basışta kaldırır (toggle).
-- Return ile liste/görev listesi otomatik devam eder, boş maddede listeyi bitirir.
-- Bölünmüş görünüm, kaydırma senkronizasyonu (⌘1 / ⌘2 / ⌘3).
-- Dosya karşılaştırma modu (⌘4): açık belgeyi başka bir `.md`/`.txt` dosyasıyla
-  yan yana karşılaştırır (⇧⌘D ile karşılaştırılacak dosyayı seç). Satır satır
-  hizalanmış görünüm, kelime bazlı vurgulu farklar, değişmeyen uzun bölümler
-  katlanır. Her fark bloğu çift yönlü aktarılabilir: `←` karşı dosyadaki
-  bölümü açık belgeye alır, `→` bölümü karşı dosyaya yazar (bellekte kalır,
-  diske yazmak için ayrı "Karşı dosyayı kaydet" adımı gerekir). Karşı dosya
-  açık belgeden bağımsız kaydedilir; ProMDEditor dışında değiştiyse üzerine
-  yazmadan önce onay ister.
-- GFM: tablolar, görev listeleri, üstü çizili, fenced code.
-- **36 tema** — İstanbul Day/Night (varsayılan), GitHub, Ayu, Night Owl, Kanagawa,
-  Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula, Monokai, Nord,
-  Cobalt2, Panda, Material Ocean ve yüksek kontrast seçenekleri.
-  Hepsi WCAG AAA hedefine göre ayarlandı: gövde metni ≥8:1, bağlantı ve soluk
-  metin ≥4.6:1, kod bloğu ≥7:1 (bkz. `Tools/fix_contrast.py`).
-- Araç çubuğundan tema seçici; açık/koyu tema ayrı seçilir, sistem görünümünü izler.
-- Sistemdeki **tüm yazı tipleri** arasından gövde / başlık / tek aralıklı / editör fontu ayrı ayrı
-  seçilebilir; punto, satır yüksekliği, içerik genişliği, iki yana yaslama, daktilo modu.
-- HTML dışa aktarma ve Yazdır → PDF olarak kaydet.
-- Quick Look önizlemesi uygulamayla aynı temayı ve fontları kullanır.
+## Features
 
-## Kullanılan açık kaynak
+- **Live formatting.** Headings render at their real size, `**bold**` is bold,
+  `*italic*` is italic, code is monospaced on a tinted background, links are
+  coloured. Markdown markers stay visible in muted grey — you see the formatting
+  without losing the source.
+- **⌘B / ⌘I / ⌘K / ⌘E** and the whole Format menu apply to the selection and
+  toggle off on a second press.
+- Return continues lists and task lists automatically, and ends the list on an
+  empty item.
+- Split view with scroll sync (⌘1 / ⌘2 / ⌘3).
+- **File comparison (⌘4).** Compare the open document with another `.md` or
+  `.txt` file side by side (⇧⌘D to pick the file). Lines are aligned,
+  differences highlighted word by word, long unchanged stretches fold away.
+  Every diff block moves in either direction: `←` pulls the other file's block
+  into the open document, `→` writes your block out to the other file (kept in
+  memory — saving is a separate "Save other file" step). The other file is saved
+  independently, and if it changed outside ProMDEditor you are asked before
+  anything is overwritten.
+- GFM: tables, task lists, strikethrough, fenced code.
+- **36 themes** — Istanbul Day/Night (default), GitHub, Ayu, Night Owl,
+  Kanagawa, Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula,
+  Monokai, Nord, Cobalt2, Panda, Material Ocean and high-contrast variants.
+  All tuned to WCAG AAA targets: body text ≥8:1, links and muted text ≥4.6:1,
+  code blocks ≥7:1 (see `Tools/fix_contrast.py`).
+- Theme picker in the toolbar; light and dark themes are chosen separately and
+  follow the system appearance.
+- Body, heading, monospace and editor fonts are each pickable from **every font
+  installed on the machine**; size, line height, content width, justification
+  and a typewriter mode are adjustable.
+- HTML export, and Save as PDF from the Print menu.
+- The Quick Look preview uses the same theme and fonts as the app.
+- **Six languages**: English, Turkish, German, Spanish, French, Italian. The UI
+  follows the system language.
 
-| Proje | Lisans | Rol |
+## Open source used
+
+| Project | License | Role |
 |---|---|---|
-| [apple/swift-markdown](https://github.com/apple/swift-markdown) | Apache-2.0 | cmark-gfm tabanlı GFM ayrıştırıcı |
+| [apple/swift-markdown](https://github.com/apple/swift-markdown) | Apache-2.0 | cmark-gfm based GFM parser |
 
-HTML üretici (`MarkdownHTMLRenderer.swift`), editör biçimlendiricisi, temalar ve
-Quick Look eklentisi bu projeye özgü.
+The HTML renderer (`MarkdownHTMLRenderer.swift`), the editor highlighter, the
+themes, the diff engine and the Quick Look extension are specific to this
+project.
 
-## Derleme
+## Building
 
 ```bash
-brew install xcodegen          # tek seferlik
-cd ~/MarkPad
+brew install xcodegen          # one-off
+git clone https://github.com/ulkuderner/ProMDEditor.git
+cd ProMDEditor
 xcodegen generate
 open MarkPad.xcodeproj
 ```
 
-Xcode'da:
+> **On the naming.** The product is called ProMDEditor, but the Xcode project,
+> the targets and the Swift module are still named `MarkPad` — the app was
+> renamed after the name was taken on the App Store, and only the user-facing
+> name changed. Bundle identifiers (`com.caglar.MarkPad`) stayed put too,
+> because they are already registered with Apple.
 
-1. `MarkPad` hedefi → **Signing & Capabilities** → *Team*'i seç (ücretsiz Apple ID yeterli).
-   Aynısını `MarkPadQuickLook` hedefi için de yap.
-2. Bundle ID'leri kendine göre değiştir (`com.caglar.MarkPad` → seninki).
-3. ⌘R ile çalıştır.
+In Xcode:
 
-### App Group hakkında
+1. Select the `MarkPad` target → **Signing & Capabilities** → pick your *Team*
+   (a free Apple ID is enough). Do the same for the `MarkPadQuickLook` target.
+2. Change the bundle identifiers to your own (`com.caglar.MarkPad` → yours).
+3. ⌘R to run.
 
-Ayarların Quick Look eklentisine geçmesi için iki hedefte de aynı App Group tanımlı olmalı
-(`group.<TeamID>.com.caglar.MarkPad` biçimi macOS'ta gerekir). Team ID'n yoksa
-`.entitlements` dosyalarındaki `application-groups` bloklarını sil — uygulama sorunsuz çalışır,
-Quick Look yalnızca varsayılan tema/fontları kullanır.
+### About the App Group
 
-## Quick Look'u devreye alma
+For settings to reach the Quick Look extension, both targets need the same App
+Group (macOS requires the `group.<TeamID>.com.caglar.MarkPad` shape). If you
+have no Team ID, delete the `application-groups` blocks from the `.entitlements`
+files — the app runs fine, and Quick Look simply falls back to the default theme
+and fonts.
 
-Eklentiler yalnızca uygulama düzgün bir konumdayken yüklenir:
+### Running the tests
 
 ```bash
-# Xcode'un ürettiği .app'i Uygulamalar'a kopyala
+xcodebuild -project MarkPad.xcodeproj -scheme MarkPad \
+  -configuration Debug -destination 'platform=macOS' test
+```
+
+69 tests, all green. `python3 Tools/fix_contrast.py --check` verifies that every
+theme still meets its contrast targets.
+
+## Enabling Quick Look
+
+Extensions only load when the app sits in a proper location:
+
+```bash
+# copy the .app Xcode produced into Applications
 cp -R ~/Library/Developer/Xcode/DerivedData/MarkPad-*/Build/Products/Debug/ProMDEditor.app /Applications/
 
-# Eklentiyi kaydet ve Quick Look'u sıfırla
+# register the extension and reset Quick Look
 pluginkit -a /Applications/ProMDEditor.app/Contents/PlugIns/MarkPadQuickLook.appex
 qlmanage -r && qlmanage -r cache
 killall Finder
 ```
 
-Doğrulama:
+Verify:
 
 ```bash
-pluginkit -m -p com.apple.quicklook.preview | grep -i markpad   # + ile başlamalı (etkin)
-qlmanage -p ornek.md                                            # önizlemeyi ayrı pencerede aç
+pluginkit -m -p com.apple.quicklook.preview | grep -i markpad   # should start with + (enabled)
+qlmanage -p sample.md                                           # open the preview in its own window
 ```
 
-Hâlâ ham metin görünüyorsa: Finder'da bir `.md` dosyasına ⌘I → *Birlikte Aç* → **ProMDEditor** →
-*Tümünü Değiştir*. macOS önizleme sağlayıcısını çoğu zaman varsayılan uygulamaya göre seçer.
+If you still see raw text: in Finder, ⌘I on a `.md` file → *Open with* →
+**ProMDEditor** → *Change All*. macOS usually picks the preview provider based on
+the default application.
 
-## Dosya düzeni
+## Layout
 
 ```
 Sources/
-  Shared/                     # hem uygulama hem eklenti kullanır
-    MarkdownHTMLRenderer.swift  Markdown -> HTML (MarkupVisitor)
-    Theme.swift                 temalar + CSS üretimi
-    AppSettings.swift           paylaşılan ayarlar
-    TextDiff.swift               satır+kelime bazlı diff motoru
-    DiffPalette.swift            karşılaştırma renkleri (tema başına)
+  Shared/                       # used by both the app and the extension
+    MarkdownHTMLRenderer.swift    Markdown -> HTML (MarkupVisitor)
+    Theme.swift                   themes + CSS generation
+    AppSettings.swift             shared settings
+    TextDiff.swift                line- and word-level diff engine (Myers O(ND))
+    DiffPalette.swift             comparison colours (per theme)
   App/
-    MarkPadApp.swift            DocumentGroup, menüler, kısayollar
-    MarkdownDocument.swift      .md okuma/yazma
-    ContentView.swift           pencere, araç çubuğu, dışa aktarma
-    EditorView.swift            NSTextView sarmalayıcı, liste devamı
-    MarkdownHighlighter.swift   canlı biçimlendirme kuralları
-    FormatCommand.swift         ⌘B, liste, tablo vb. metin işlemleri
-    PreviewWebView.swift        WKWebView önizleme
-    SettingsView.swift          font/tema/düzen ayarları
-    CompareController.swift     karşılaştırma durumu, dosya G/Ç, aktarma
-    CompareView.swift           karşılaştırma görünümü (⌘4)
+    MarkPadApp.swift              DocumentGroup, menus, shortcuts
+    MarkdownDocument.swift        .md reading/writing
+    ContentView.swift             window, toolbar, export
+    EditorView.swift              NSTextView wrapper, list continuation
+    MarkdownHighlighter.swift     live formatting rules
+    FormatCommand.swift           ⌘B, lists, tables and other text operations
+    PreviewWebView.swift          WKWebView preview
+    SettingsView.swift            font/theme/layout settings
+    CompareController.swift       comparison state, file I/O, block transfer
+    CompareView.swift             comparison view (⌘4)
   QuickLook/
-    PreviewViewController.swift QLPreviewingController
+    PreviewViewController.swift   QLPreviewingController
+Resources/
+  Localizable.xcstrings         translations for all six languages
 Tools/
-  MakeIcon.swift              uygulama ikonunu Core Graphics ile üretir
-  fix_contrast.py             tema paletlerini WCAG hedeflerine göre ayarlar
-  make_dmg.sh                 Release derleyip dağıtıma hazır DMG üretir
+  MakeIcon.swift                generates the app icon with Core Graphics
+  fix_contrast.py               tunes theme palettes to WCAG targets
+  make_dmg.sh                   builds Release and produces a distributable DMG
+  make_appstore_pkg.sh          builds the Mac App Store .pkg
 ```
 
-## Paketleme
+## Packaging
 
-### Doğrudan dağıtım (DMG)
+### Direct distribution (DMG)
 
 ```bash
-./Tools/make_dmg.sh                                   # ad-hoc imza (yerel kullanım)
-./Tools/make_dmg.sh "Developer ID Application: Ad (TEAMID)"   # dağıtım için
+./Tools/make_dmg.sh                                            # ad-hoc signature (local use)
+./Tools/make_dmg.sh "Developer ID Application: Name (TEAMID)"  # for distribution
 ```
 
-Çıktı `dist/ProMDEditor-<sürüm>.dmg`. Ad-hoc imzalı paket Gatekeeper tarafından
-reddedilir; başka makinelerde sorunsuz açılması için Developer ID imzası ve
-notarization gerekir:
+Output lands in `dist/ProMDEditor-<version>.dmg`. An ad-hoc signed package is
+rejected by Gatekeeper; to open cleanly on other machines it needs a Developer ID
+signature and notarization:
 
 ```bash
 xcrun notarytool submit dist/ProMDEditor-1.0.dmg \
@@ -139,49 +173,72 @@ xcrun stapler staple dist/ProMDEditor-1.0.dmg
 
 ### Mac App Store
 
-Proje App Store gereksinimlerini karşılayacak şekilde hazırlandı:
+```bash
+./Tools/make_appstore_pkg.sh
+```
 
-| Gereksinim | Durum |
+The project meets the store requirements:
+
+| Requirement | Status |
 |---|---|
-| App Sandbox | ✅ açık |
-| Asset catalog ikonu (1024×1024 dahil) | ✅ `Resources/Assets.xcassets` |
-| `PrivacyInfo.xcprivacy` (uygulama + eklenti) | ✅ veri toplanmıyor, `UserDefaults` için `CA92.1` |
-| `LSApplicationCategoryType` | ✅ Developer Tools |
-| Şifreleme beyanı | ✅ `ITSAppUsesNonExemptEncryption = false` |
+| App Sandbox | ✅ on |
+| Asset catalog icon (including 1024×1024) | ✅ `Resources/Assets.xcassets` |
+| `PrivacyInfo.xcprivacy` (app + extension) | ✅ no data collected, `CA92.1` for `UserDefaults` |
+| `LSApplicationCategoryType` | ✅ Productivity |
+| `CFBundleDisplayName` (app + extension) | ✅ required by App Store validation |
+| Encryption declaration | ✅ `ITSAppUsesNonExemptEncryption = false` |
 
-Kalan adımlar hesap gerektiriyor:
+Notarization is not needed for the Mac App Store — that is only for Developer ID
+distribution.
 
-1. Apple Developer Program üyeliği (yıllık 99 USD).
-2. Developer portalında kimlikleri kaydet: `com.caglar.MarkPad`,
-   `com.caglar.MarkPad.QuickLook` ve App Group.
-3. App Group'u geri ekle — Team ID öneki zorunlu olduğu için ad
-   `group.<TeamID>.com.caglar.MarkPad` olmalı. İki `.entitlements` dosyasına da
-   eklenmeli; bu sayede Quick Look önizlemesi uygulamanın tema ve font
-   ayarlarını kullanır.
-4. Xcode → hedef → Signing & Capabilities → Team seç, otomatik imzalama açık.
-5. Product → Archive → Distribute App → App Store Connect.
-6. App Store Connect'te kayıt: ekran görüntüsü (2560×1600 veya 1280×800),
-   açıklama, gizlilik politikası URL'si, destek URL'si.
+## Contributing
 
-Mac App Store için notarization gerekmez; o yalnızca Developer ID dağıtımı içindir.
+Contributions are welcome, and the codebase is small enough to get into in an
+afternoon — pure Swift, no dependency beyond `swift-markdown`, no build magic
+other than XcodeGen.
 
-## Geliştirme fikirleri
+Some things worth knowing before you start:
 
-- Sol tarafta klasör gezgini (`NSOutlineView` + güvenlik kapsamlı yer imleri) — vault mantığı.
-- Kod bloklarına sözdizimi renklendirmesi: `highlight.js` bundle'a gömülüp CSS'e eklenebilir.
-- Mermaid diyagramları (yalnızca uygulama içinde; Quick Look'ta JS kapalı).
-- `qlmanage -t` için ayrı bir **Thumbnail Extension** — Finder ikonlarında da render.
-- Dipnot ve `[[wiki-link]]` desteği için `MarkdownHTMLRenderer` içine ön-işlem adımı.
+- **The project file is generated.** Edit `project.yml`, then run
+  `xcodegen generate`. Do not hand-edit `MarkPad.xcodeproj`.
+- **Themes have a contrast budget.** If you add or change a theme, run
+  `python3 Tools/fix_contrast.py` to tune it and `--check` to verify. A theme
+  that fails the targets is a failing build in CI.
+- **Every user-facing string is localized.** Add English text as the literal in
+  the source, then run `xcodebuild -exportLocalizations` to get the extracted
+  key and add it to `Resources/Localizable.xcstrings`. Note that a string only
+  gets extracted if it reaches SwiftUI as a `LocalizedStringKey` — if you write a
+  helper that takes a `String`, the string silently never appears for
+  translation. Outside SwiftUI, wrap text in `String(localized:)`.
+- **The Shared/ folder is shared with the extension.** Anything you put there
+  has to compile in an app extension context — no `NSApplication`, no
+  app-only APIs.
+- Tests live in `Tests/MarkPadTests`. The diff engine in particular is worth
+  covering when you touch it.
 
-## Benzer açık kaynak projeler
+Good first areas, if you are looking for one:
 
-- [sbarex/QLMarkdown](https://github.com/sbarex/QLMarkdown) — sadece Quick Look, çok zengin
-- [MacDownApp/macdown](https://github.com/MacDownApp/macdown) — klasik editör, Objective-C
-- [marktext/marktext](https://github.com/marktext/marktext) — Electron, gerçek WYSIWYG
-- [gonzalezreal/swift-markdown-ui](https://github.com/gonzalezreal/swift-markdown-ui) — WebView yerine
-  saf SwiftUI ile render etmek istersen
+- Syntax highlighting inside fenced code blocks (`highlight.js` bundled and
+  wired into the generated CSS).
+- A folder sidebar (`NSOutlineView` plus security-scoped bookmarks) — vault-style
+  navigation.
+- Mermaid diagrams (app only; JavaScript is disabled in Quick Look).
+- A separate **Thumbnail Extension** for `qlmanage -t`, so Finder icons render
+  too.
+- Footnote and `[[wiki-link]]` support via a preprocessing step in
+  `MarkdownHTMLRenderer`.
+- More languages in the String Catalog.
 
-## Lisans
+Open an issue before starting anything large, so we do not duplicate work.
+
+## Similar open-source projects
+
+- [sbarex/QLMarkdown](https://github.com/sbarex/QLMarkdown) — Quick Look only, very rich
+- [MacDownApp/macdown](https://github.com/MacDownApp/macdown) — classic editor, Objective-C
+- [marktext/marktext](https://github.com/marktext/marktext) — Electron, true WYSIWYG
+- [gonzalezreal/swift-markdown-ui](https://github.com/gonzalezreal/swift-markdown-ui) — if you
+  would rather render in pure SwiftUI than in a WebView
+
+## License
 
 MIT.
-> 
