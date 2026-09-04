@@ -26,13 +26,23 @@ struct MarkPadApp: App {
 }
 
 /// Uygulama dosya acmadan baslatildiginda bos bir belge acar.
-///
-/// Info.plist'teki `NSShowAppCentricOpenPanelInsteadOfUntitledFile = NO` ile
-/// birlikte calisir: o anahtar acilistaki "Ac" panelini kapatir, buradaki
-/// delegate de yerine adsiz bir belge olusturulmasini soyler. Ikisinden biri
-/// eksik olursa uygulama yine dosya secme penceresiyle acilir.
 final class MarkPadAppDelegate: NSObject, NSApplicationDelegate {
 
+    /// macOS 12'den beri belge tabanli uygulamalar acilista dosya secme
+    /// panelini gosteriyor. Bu davranisi yoneten anahtar bir **kullanici
+    /// varsayilani**dir, Info.plist anahtari degil — `NSUserDefaults`
+    /// Info.plist'i okumadigi icin oraya yazmak hicbir sey yapmaz.
+    ///
+    /// Kayit alanina (registration domain) yaziyoruz: bu en dusuk oncelikli
+    /// katman, yani kullanici sistem ayarindan paneli acikca istediyse
+    /// onun tercihi gecerli kalir.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        UserDefaults.standard.register(defaults: [
+            "NSShowAppCentricOpenPanelInsteadOfUntitledFile": false
+        ])
+    }
+
+    /// Panel gosterilmediginde bunun yerine adsiz bir belge acilsin.
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
         true
     }
