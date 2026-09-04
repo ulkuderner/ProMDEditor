@@ -28,7 +28,7 @@ struct Theme: Identifiable, Hashable {
         quoteBar: "#30363d", selection: "#1f4b7a")
 
     static let sepia = Theme(
-        id: "sepia", name: "Sepya", isDark: false,
+        id: "sepia", name: "Sepia", isDark: false,
         bg: "#f7f1e3", fg: "#3b332a", muted: "#776B59", accent: "#9c5a2d",
         border: "#e0d5bf", codeBG: "#efe6d2", codeFG: "#3b332a",
         quoteBar: "#d8c9ac", selection: "#e6d3a8")
@@ -147,19 +147,19 @@ struct Theme: Identifiable, Hashable {
         quoteBar: "#2a2a2a", selection: "#1f3a5f")
 
     static let paper = Theme(
-        id: "paper", name: "Kâğıt", isDark: false,
+        id: "paper", name: "Paper", isDark: false,
         bg: "#fffdf7", fg: "#2b2b2b", muted: "#777267", accent: "#b4531f",
         border: "#e8e2d4", codeBG: "#f6f2e8", codeFG: "#2b2b2b",
         quoteBar: "#ded7c5", selection: "#f0e6cf")
 
     static let highContrast = Theme(
-        id: "high-contrast", name: "Yüksek Kontrast", isDark: false,
+        id: "high-contrast", name: "High Contrast", isDark: false,
         bg: "#ffffff", fg: "#000000", muted: "#3d3d3d", accent: "#0000cc",
         border: "#000000", codeBG: "#f0f0f0", codeFG: "#000000",
         quoteBar: "#000000", selection: "#ffec3d")
 
     static let highContrastDark = Theme(
-        id: "high-contrast-dark", name: "Yüksek Kontrast (Koyu)", isDark: true,
+        id: "high-contrast-dark", name: "High Contrast (Dark)", isDark: true,
         bg: "#000000", fg: "#ffffff", muted: "#c8c8c8", accent: "#4dc3ff",
         border: "#ffffff", codeBG: "#141414", codeFG: "#ffffff",
         quoteBar: "#ffffff", selection: "#0050a0")

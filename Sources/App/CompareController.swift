@@ -54,10 +54,10 @@ final class CompareController: ObservableObject {
     /// testler bunu gercek UI acmadan taklit etmek icin degistirebilir.
     var confirmLargeFile: (Int) -> Bool = { size in
         let a = NSAlert()
-        a.messageText = "Büyük dosya"
-        a.informativeText = "Bu dosya \(size / 1024 / 1024) MB. Karşılaştırma yavaş olabilir. Devam edilsin mi?"
-        a.addButton(withTitle: "Devam")
-        a.addButton(withTitle: "Vazgeç")
+        a.messageText = String(localized: "Large file")
+        a.informativeText = String(localized: "This file is \(size / 1024 / 1024) MB. Comparison may be slow. Continue?")
+        a.addButton(withTitle: String(localized: "Continue"))
+        a.addButton(withTitle: String(localized: "Cancel"))
         return a.runModal() == .alertFirstButtonReturn
     }
 
@@ -98,7 +98,7 @@ final class CompareController: ObservableObject {
     @discardableResult
     func acceptDroppedFile(_ url: URL, documentText: String) -> Bool {
         guard Self.isComparableTextFile(url) else {
-            alertMessage = "\(url.lastPathComponent) metin dosyası değil; karşılaştırılamıyor."
+            alertMessage = String(localized: "\(url.lastPathComponent) is not a text file; it cannot be compared.")
             return false
         }
         do {
@@ -107,7 +107,7 @@ final class CompareController: ObservableObject {
             recompute(against: documentText)
             return true
         } catch {
-            alertMessage = "Dosya açılamadı: \(error.localizedDescription)"
+            alertMessage = String(localized: "Could not open file: \(error.localizedDescription)")
             return false
         }
     }
@@ -117,7 +117,7 @@ final class CompareController: ObservableObject {
         panel.allowedContentTypes = [.markdown, .plainText]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.message = "Karşılaştırılacak dosyayı seç"
+        panel.message = String(localized: "Choose a file to compare")
         guard panel.runModal() == .OK, let url = panel.url else {
             // Kullanici paneli bilincli olarak kapatti; `restoreBookmark()`
             // bu oturumda artik otomatik devreye girmesin (bkz. Bulgu M2).
@@ -132,7 +132,7 @@ final class CompareController: ObservableObject {
             // Kullanici buyuk dosya uyarisinda vazgectiyse `load` false doner;
             // boyle bir dosya acilmadigi icin bookmark'a da yazilmamali.
         } catch {
-            alertMessage = "Dosya açılamadı: \(error.localizedDescription)"
+            alertMessage = String(localized: "Could not open file: \(error.localizedDescription)")
         }
     }
 
@@ -271,10 +271,10 @@ final class CompareController: ObservableObject {
 
         if otherChangedOnDisk() {
             let a = NSAlert()
-            a.messageText = "Dosya ProMDEditor dışında değişti"
-            a.informativeText = "\(url.lastPathComponent) başka bir yerde düzenlenmiş. Üzerine yazılsın mı?"
-            a.addButton(withTitle: "Üzerine yaz")
-            a.addButton(withTitle: "Vazgeç")
+            a.messageText = String(localized: "File changed outside ProMDEditor")
+            a.informativeText = String(localized: "\(url.lastPathComponent) was edited elsewhere. Overwrite it?")
+            a.addButton(withTitle: String(localized: "Overwrite"))
+            a.addButton(withTitle: String(localized: "Cancel"))
             guard a.runModal() == .alertFirstButtonReturn else { return }
         }
 
@@ -286,7 +286,7 @@ final class CompareController: ObservableObject {
             pushUndoStack.removeAll()
         } catch {
             // Rozet ve bellekteki metin korunur; kullanici tekrar deneyebilir.
-            alertMessage = "Dosya kaydedilemedi: \(error.localizedDescription)"
+            alertMessage = String(localized: "Could not save file: \(error.localizedDescription)")
         }
     }
 

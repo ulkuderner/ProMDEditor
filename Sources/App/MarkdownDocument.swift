@@ -35,22 +35,22 @@ struct MarkdownDocument: FileDocument {
     }
 
     static let starterText = """
-    # Yeni Belge
+    # New Document
 
-    Yazmaya buradan başla. **Kalın**, *italik*, `kod` ve ~~üstü çizili~~ metin desteklenir.
+    Start writing here. **Bold**, *italic*, `code` and ~~strikethrough~~ text are supported.
 
-    - [ ] Yapılacak madde
-    - [x] Tamamlanan madde
+    - [ ] A task to do
+    - [x] A finished task
 
-    > Alıntı bloğu.
+    > A block quote.
 
     ```swift
-    print("Merhaba, ProMDEditor")
+    print("Hello, ProMDEditor")
     ```
 
-    | Sütun | Açıklama |
-    |-------|----------|
-    | ⌘B    | Kalın    |
-    | ⌘I    | İtalik   |
+    | Key | Meaning |
+    |-----|---------|
+    | ⌘B  | Bold    |
+    | ⌘I  | Italic  |
     """
 }

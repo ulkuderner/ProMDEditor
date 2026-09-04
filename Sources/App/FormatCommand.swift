@@ -13,10 +13,10 @@ enum ViewMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .editor: return "Düzenleyici"
-        case .split: return "Bölünmüş"
-        case .preview: return "Önizleme"
-        case .compare: return "Karşılaştır"
+        case .editor: return String(localized: "Editor")
+        case .split: return String(localized: "Split")
+        case .preview: return String(localized: "Preview")
+        case .compare: return String(localized: "Compare")
         }
     }
     var symbol: String {
@@ -168,7 +168,7 @@ final class EditorController: ObservableObject {
     private func insertLink(_ tv: NSTextView) {
         let range = tv.selectedRange()
         let selected = (tv.string as NSString).substring(with: range)
-        let label = selected.isEmpty ? "bağlantı metni" : selected
+        let label = selected.isEmpty ? String(localized: "link text") : selected
         let text = "[\(label)](https://)"
         replace(tv, range: range, with: text,
                 select: NSRange(location: range.location + (label as NSString).length + 3, length: 8))
@@ -176,16 +176,16 @@ final class EditorController: ObservableObject {
 
     private func insertImage(_ tv: NSTextView) {
         let range = tv.selectedRange()
-        let text = "![açıklama](dosya.png)"
+        let text = "![" + String(localized: "description") + "](file.png)"
         replace(tv, range: range, with: text,
                 select: NSRange(location: range.location + 12, length: 9))
     }
 
     private static let tableTemplate = """
 
-    | Sütun A | Sütun B |
-    |---------|---------|
-    | değer   | değer   |
+    | Column A | Column B |
+    |----------|----------|
+    | value    | value    |
 
     """
 }

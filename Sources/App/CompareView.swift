@@ -36,7 +36,7 @@ struct CompareView: View {
             if controller.otherURL == nil {
                 emptyState
             } else if controller.result.hunks.isEmpty {
-                message("İki dosya birebir aynı.")
+                message("The two files are identical.")
             } else {
                 if controller.result.truncated { truncationWarning }
                 table
@@ -54,7 +54,7 @@ struct CompareView: View {
             get: { controller.alertMessage != nil },
             set: { if !$0 { controller.alertMessage = nil } }
         )) {
-            Button("Tamam", role: .cancel) { controller.alertMessage = nil }
+            Button("OK", role: .cancel) { controller.alertMessage = nil }
         } message: {
             Text(controller.alertMessage ?? "")
         }
@@ -64,25 +64,25 @@ struct CompareView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Text("Bu belge").font(.system(size: 11, weight: .semibold))
+            Text("This document").font(.system(size: 11, weight: .semibold))
             Spacer()
 
             if controller.otherURL != nil {
                 if controller.canUndo {
-                    Button("Geri al") { controller.undoLastPush(documentText: documentText) }
-                        .help("Karşı dosyaya yapılan son aktarmayı geri alır (⌘Z bu belgeye aittir)")
+                    Button("Undo") { controller.undoLastPush(documentText: documentText) }
+                        .help("Undoes the last block pushed to the other file (⌘Z applies to this document)")
                 }
                 if controller.otherIsDirty {
                     Text("●").foregroundStyle(.orange)
-                        .help("Karşı dosyada kaydedilmemiş değişiklik var")
+                        .help("The other file has unsaved changes")
                     // Kisayol yok: ⇧⌘S `DocumentGroup`'un "Kopyasini Olustur"
                     // komutuna ait; ayni kombinasyonu paylasmak iki komutun
                     // düğmenin varligina gore yer degistirmesine yol acardi
                     // (bkz. Bulgu I1). Spec §6 bu düğme icin kisayol istemiyor.
-                    Button("Karşı dosyayı kaydet") { controller.saveOther() }
+                    Button("Save other file") { controller.saveOther() }
                 }
                 Text(controller.otherName).font(.system(size: 11, weight: .semibold))
-                Button("Değiştir…") { chooseAndRecompute() }
+                Button("Change…") { chooseAndRecompute() }
             }
         }
         .padding(.horizontal, 12)
@@ -125,12 +125,12 @@ struct CompareView: View {
             Image(systemName: isDropTargeted ? "arrow.down.doc.fill" : "arrow.down.doc")
                 .font(.system(size: 32))
                 .foregroundStyle(isDropTargeted ? Color.accentColor : Color.secondary)
-            Text("Karşılaştırılacak dosyayı buraya sürükle")
+            Text("Drag the file to compare here")
                 .foregroundStyle(.secondary)
-            Text("veya")
+            Text("or")
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
-            Button("Dosya seç…") { chooseAndRecompute() }
+            Button("Choose file…") { chooseAndRecompute() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
@@ -148,13 +148,13 @@ struct CompareView: View {
         } isTargeted: { isDropTargeted = $0 }
     }
 
-    private func message(_ s: String) -> some View {
+    private func message(_ s: LocalizedStringKey) -> some View {
         VStack { Spacer(); Text(s).foregroundStyle(.secondary); Spacer() }
             .frame(maxWidth: .infinity)
     }
 
     private var truncationWarning: some View {
-        Text("Dosyalar çok farklı — kaba karşılaştırma gösteriliyor.")
+        Text("The files differ too much — showing a coarse comparison.")
             .font(.system(size: 11))
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity)
@@ -188,7 +188,7 @@ struct CompareView: View {
         Button {
             expandedFolds.insert(id)
         } label: {
-            Text("⋯ \(range.count) satır aynı")
+            Text("⋯ \(range.count) identical lines")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 3)
@@ -274,13 +274,13 @@ struct CompareView: View {
                                                          documentText: documentText) }
                     label: { Image(systemName: "arrow.left") }
                     .buttonStyle(.borderless)
-                    .help("Bu bölümü karşıdan bu belgeye al")
+                    .help("Pull this block into this document")
 
                 Button { _ = controller.apply(hunk: hunk, source: .left,
                                               documentText: documentText) }
                     label: { Image(systemName: "arrow.right") }
                     .buttonStyle(.borderless)
-                    .help("Bu bölümü karşı dosyaya yaz (kaydetmek ayrı adım)")
+                    .help("Write this block to the other file (saving is a separate step)")
             } else {
                 Spacer().frame(width: 40)
             }

@@ -97,15 +97,15 @@ struct ContentView: View {
     private var statusBar: some View {
         HStack(spacing: 14) {
             if mode == .compare {
-                Text("\(compare.result.hunks.count) fark bloğu")
-                if compare.otherIsDirty { Text("karşı dosya kaydedilmedi").foregroundStyle(.orange) }
+                Text("\(compare.result.hunks.count) diff blocks")
+                if compare.otherIsDirty { Text("other file not saved").foregroundStyle(.orange) }
             } else {
-                Text("\(wordCount) kelime")
-                Text("\(text.count) karakter")
-                Text("\(text.components(separatedBy: .newlines).count) satır")
+                Text("\(wordCount) words")
+                Text("\(text.count) characters")
+                Text("\(text.components(separatedBy: .newlines).count) lines")
             }
             Spacer()
-            Text("~\(max(1, wordCount / 200)) dk okuma")
+            Text("~\(max(1, wordCount / 200)) min read")
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
@@ -122,41 +122,41 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup {
-            formatButton("bold", "Kalın (⌘B)", .bold)
-            formatButton("italic", "İtalik (⌘I)", .italic)
-            formatButton("strikethrough", "Üstü çizili", .strikethrough)
-            formatButton("chevron.left.forwardslash.chevron.right", "Satır içi kod (⌘E)", .inlineCode)
+            formatButton("bold", "Bold (⌘B)", .bold)
+            formatButton("italic", "Italic (⌘I)", .italic)
+            formatButton("strikethrough", "Strikethrough", .strikethrough)
+            formatButton("chevron.left.forwardslash.chevron.right", "Inline code (⌘E)", .inlineCode)
 
             Divider()
 
             Menu {
-                Button("Başlık 1") { controller.apply(.heading(1)) }
-                Button("Başlık 2") { controller.apply(.heading(2)) }
-                Button("Başlık 3") { controller.apply(.heading(3)) }
-                Button("Başlık 4") { controller.apply(.heading(4)) }
+                Button("Heading 1") { controller.apply(.heading(1)) }
+                Button("Heading 2") { controller.apply(.heading(2)) }
+                Button("Heading 3") { controller.apply(.heading(3)) }
+                Button("Heading 4") { controller.apply(.heading(4)) }
                 Divider()
-                Button("Normal paragraf") { controller.apply(.heading(0)) }
+                Button("Body text") { controller.apply(.heading(0)) }
             } label: {
-                Label("Başlık", systemImage: "textformat.size")
+                Label("Heading", systemImage: "textformat.size")
             }
 
-            formatButton("list.bullet", "Madde listesi", .bulletList)
-            formatButton("list.number", "Numaralı liste", .numberedList)
-            formatButton("checklist", "Görev listesi", .taskList)
-            formatButton("text.quote", "Alıntı", .blockQuote)
-            formatButton("curlybraces", "Kod bloğu", .codeBlock)
-            formatButton("link", "Bağlantı (⌘K)", .link)
-            formatButton("tablecells", "Tablo", .table)
+            formatButton("list.bullet", "Bulleted list", .bulletList)
+            formatButton("list.number", "Numbered list", .numberedList)
+            formatButton("checklist", "Task list", .taskList)
+            formatButton("text.quote", "Blockquote", .blockQuote)
+            formatButton("curlybraces", "Code block", .codeBlock)
+            formatButton("link", "Link (⌘K)", .link)
+            formatButton("tablecells", "Table", .table)
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
             themeMenu
 
             Menu {
-                Button("HTML olarak dışa aktar…") { exportHTML() }
-                Button("Önizlemeyi yazdır / PDF…") { printPreview() }
+                Button("Export as HTML…") { exportHTML() }
+                Button("Print Preview / PDF…") { printPreview() }
             } label: {
-                Label("Dışa Aktar", systemImage: "square.and.arrow.up")
+                Label("Export", systemImage: "square.and.arrow.up")
             }
 
             Button {
@@ -164,21 +164,21 @@ struct ContentView: View {
                 compare.chooseFile()
                 compare.recompute(against: text)
             } label: {
-                Label("Karşılaştır", systemImage: "arrow.left.arrow.right.square")
+                Label("Compare", systemImage: "arrow.left.arrow.right.square")
             }
-            .help("Bu belgeyi başka bir dosyayla karşılaştır (⇧⌘D)")
+            .help("Compare this document with another file (⇧⌘D)")
 
-            Picker("Görünüm", selection: $mode) {
+            Picker("View", selection: $mode) {
                 ForEach(ViewMode.allCases) { m in
                     Image(systemName: m.symbol).tag(m)
                 }
             }
             .pickerStyle(.segmented)
-            .help("⌘1 düzenleyici · ⌘2 bölünmüş · ⌘3 önizleme · ⌘4 karşılaştırma")
+            .help("⌘1 editor · ⌘2 split · ⌘3 preview · ⌘4 compare")
         }
     }
 
-    private func formatButton(_ symbol: String, _ help: String, _ command: FormatCommand) -> some View {
+    private func formatButton(_ symbol: String, _ help: LocalizedStringKey, _ command: FormatCommand) -> some View {
         Button { controller.apply(command) } label: { Image(systemName: symbol) }
             .help(help)
     }
@@ -189,20 +189,20 @@ struct ContentView: View {
     /// Sistem gorunumu koyuysa koyu tema listesi, degilse acik tema listesi duzenlenir.
     private var themeMenu: some View {
         Menu {
-            Picker("Açık tema", selection: $settings.themeID) {
+            Picker("Light theme", selection: $settings.themeID) {
                 ForEach(Theme.all.filter { !$0.isDark }) { Text($0.name).tag($0.id) }
             }
-            Picker("Koyu tema", selection: $settings.darkThemeID) {
+            Picker("Dark theme", selection: $settings.darkThemeID) {
                 ForEach(Theme.all.filter { $0.isDark }) { Text($0.name).tag($0.id) }
             }
             Divider()
-            Toggle("Sistem görünümünü izle", isOn: $settings.followSystemAppearance)
+            Toggle("Follow system appearance", isOn: $settings.followSystemAppearance)
             Divider()
-            Text("Etkin: \(theme.name)")
+            Text("Active: \(theme.name)")
         } label: {
-            Label("Tema", systemImage: "paintpalette")
+            Label("Theme", systemImage: "paintpalette")
         }
-        .help("Önizleme teması: \(theme.name)")
+        .help("Preview theme: \(theme.name)")
     }
 
     // MARK: - Surukle birak
@@ -249,7 +249,7 @@ struct ContentView: View {
     private func exportHTML() {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.html]
-        panel.nameFieldStringValue = (fileURL?.deletingPathExtension().lastPathComponent ?? "belge") + ".html"
+        panel.nameFieldStringValue = (fileURL?.deletingPathExtension().lastPathComponent ?? String(localized: "document")) + ".html"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         try? renderedHTML.write(to: url, atomically: true, encoding: .utf8)
     }

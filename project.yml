@@ -1,10 +1,14 @@
 name: MarkPad
 options:
   bundleIdPrefix: com.caglar
+  developmentLanguage: en
   deploymentTarget:
     macOS: "13.0"
   createIntermediateGroups: true
   groupSortPosition: top
+
+# Arayuz dilleri: en taban, digerleri String Catalog'dan gelir.
+knownRegions: [en, tr, de, es, fr, it, Base]
 
 packages:
   Markdown:
@@ -15,6 +19,7 @@ settingGroups:
   common:
     base:
       SWIFT_VERSION: "5.9"
+      SWIFT_EMIT_LOC_STRINGS: YES
       MARKETING_VERSION: "1.0"
       CURRENT_PROJECT_VERSION: "1"
       ENABLE_HARDENED_RUNTIME: YES
@@ -31,6 +36,7 @@ targets:
         excludes: ["Info.plist", "*.entitlements"]
       - path: Sources/Shared
       - path: Resources/Assets.xcassets
+      - path: Resources/Localizable.xcstrings
       - path: Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
     dependencies:
