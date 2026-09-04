@@ -17,3 +17,6 @@ Resources/AppIcon.iconset/
 
 # Superpowers SDD calisma alani
 .superpowers/
+
+# Gelistirme sureci notlari (depoya girmez)
+docs/superpowers/
