@@ -167,4 +167,55 @@ final class TextDiffTests: XCTestCase {
         XCTAssertEqual(r.rows.first?.kind, .equal)
         XCTAssertEqual(r.rows.last?.kind, .equal)
     }
+
+    // MARK: - Satir ici kelime farki
+
+    func testTokenizeKelimeVeAyraclariAyirir() {
+        XCTAssertEqual(TextDiff.tokenize("ab cd"), ["ab", " ", "cd"])
+        XCTAssertEqual(TextDiff.tokenize("a, b"), ["a", ",", " ", "b"])
+        XCTAssertEqual(TextDiff.tokenize(""), [])
+    }
+
+    func testInlineSpansDegisenKelimeyiIsaretler() {
+        let (sol, sag) = TextDiff.inlineSpans("hizli kahverengi tilki",
+                                              "hizli yesil tilki")
+        XCTAssertEqual(sol.map(\.text).joined(), "hizli kahverengi tilki")
+        XCTAssertEqual(sag.map(\.text).joined(), "hizli yesil tilki")
+        XCTAssertTrue(sol.contains { $0.changed && $0.text.contains("kahverengi") })
+        XCTAssertTrue(sag.contains { $0.changed && $0.text.contains("yesil") })
+        XCTAssertTrue(sol.contains { !$0.changed && $0.text.contains("hizli") })
+    }
+
+    func testInlineSpansAyniSatirdaDegisimYok() {
+        let (sol, sag) = TextDiff.inlineSpans("ayni metin", "ayni metin")
+        XCTAssertFalse(sol.contains { $0.changed })
+        XCTAssertFalse(sag.contains { $0.changed })
+    }
+
+    func testCompareDegisenSatirChangedOlur() {
+        let r = TextDiff.compare(left: "bas\nhizli tilki\nson\n",
+                                 right: "bas\nyavas tilki\nson\n")
+        XCTAssertEqual(r.rows.count, 3)
+        XCTAssertEqual(r.rows[1].kind, .changed)
+        XCTAssertEqual(r.rows[1].left, 1)
+        XCTAssertEqual(r.rows[1].right, 1)
+        XCTAssertEqual(r.rows[1].leftSpans.map(\.text).joined(), "hizli tilki")
+        XCTAssertEqual(r.rows[1].rightSpans.map(\.text).joined(), "yavas tilki")
+        XCTAssertTrue(r.rows[1].leftSpans.contains { !$0.changed })
+    }
+
+    func testCompareEsitsizSayidaSatirEslesmez() {
+        // 1 silinen, 2 eklenen -> eslestirilemez, .changed olusmaz.
+        let r = TextDiff.compare(left: "bas\nbir\nson\n",
+                                 right: "bas\nbir-a\nbir-b\nson\n")
+        XCTAssertFalse(r.rows.contains { $0.kind == .changed })
+    }
+
+    func testUnicodeSatirlarBozulmaz() {
+        let sol = "merhaba 👋 dünya\n"
+        let sag = "merhaba 👋 evren\n"
+        let r = TextDiff.compare(left: sol, right: sag)
+        XCTAssertEqual(r.rows[0].leftSpans.map(\.text).joined(), "merhaba 👋 dünya")
+        XCTAssertEqual(r.rows[0].rightSpans.map(\.text).joined(), "merhaba 👋 evren")
+    }
 }

@@ -260,12 +260,113 @@ extension TextDiff {
             rows.append(equalRow(left: l, right: r, text: a[l]))
         }
 
-        return DiffResult(rows: rows, hunks: [], truncated: truncated)
+        // Kaba geri dususte satirlari eslestirmek yaniltici olur; atla.
+        let paired = truncated ? rows : pairChanges(rows)
+        return DiffResult(rows: paired, hunks: [], truncated: truncated)
     }
 
     private static func equalRow(left: Int, right: Int, text: String) -> DiffRow {
         let span = [InlineSpan(text: text, changed: false)]
         return DiffRow(left: left, right: right, kind: .equal,
                        leftSpans: span, rightSpans: span)
+    }
+}
+
+// MARK: - Satir ici kelime farki
+
+extension TextDiff {
+
+    /// Satiri harf/rakam dizileri ve tek tek diger karakterler olarak boler.
+    /// Bosluklar token olarak korunur; boylece token'larin birlesimi
+    /// satirin birebir kendisidir.
+    static func tokenize(_ line: String) -> [String] {
+        var tokens: [String] = []
+        var current = ""
+        var currentIsWord = false
+
+        for ch in line {
+            let isWord = ch.isLetter || ch.isNumber
+            if current.isEmpty {
+                current = String(ch)
+                currentIsWord = isWord
+            } else if isWord && currentIsWord {
+                current.append(ch)
+            } else {
+                tokens.append(current)
+                current = String(ch)
+                currentIsWord = isWord
+            }
+        }
+        if !current.isEmpty { tokens.append(current) }
+        return tokens
+    }
+
+    /// Iki satirin kelime duzeyinde farkini parcalara doker.
+    static func inlineSpans(_ a: String, _ b: String) -> (left: [InlineSpan], right: [InlineSpan]) {
+        let ta = tokenize(a), tb = tokenize(b)
+
+        // Satir ici icin dusuk esik yeter; asilirsa tum satir degismis sayilir.
+        guard let edits = myers(ta, tb, maxD: 400) else {
+            return ([InlineSpan(text: a, changed: true)],
+                    [InlineSpan(text: b, changed: true)])
+        }
+
+        var left: [InlineSpan] = [], right: [InlineSpan] = []
+        for e in edits {
+            switch e {
+            case .keep(let l, let r):
+                appendSpan(&left, ta[l], changed: false)
+                appendSpan(&right, tb[r], changed: false)
+            case .delete(let l):
+                appendSpan(&left, ta[l], changed: true)
+            case .insert(let r):
+                appendSpan(&right, tb[r], changed: true)
+            }
+        }
+        return (left, right)
+    }
+
+    /// Ayni isarete sahip ardisik parcalari birlestirir; arayuzde
+    /// parca basina bir gorunum yaratmamak icin.
+    private static func appendSpan(_ spans: inout [InlineSpan], _ text: String, changed: Bool) {
+        if let last = spans.last, last.changed == changed {
+            spans[spans.count - 1] = InlineSpan(text: last.text + text, changed: changed)
+        } else {
+            spans.append(InlineSpan(text: text, changed: changed))
+        }
+    }
+
+    /// Bitisik silme/ekleme kosularini, sayilari esitse 1-1 eslestirip
+    /// `.changed` satirlara donusturur.
+    static func pairChanges(_ rows: [DiffRow]) -> [DiffRow] {
+        var result: [DiffRow] = []
+        result.reserveCapacity(rows.count)
+        var i = 0
+
+        while i < rows.count {
+            guard rows[i].kind == .deleted else {
+                result.append(rows[i]); i += 1; continue
+            }
+
+            var d = i
+            while d < rows.count && rows[d].kind == .deleted { d += 1 }
+            var s = d
+            while s < rows.count && rows[s].kind == .inserted { s += 1 }
+
+            let deleted = rows[i..<d], inserted = rows[d..<s]
+            guard deleted.count == inserted.count, !deleted.isEmpty else {
+                result.append(contentsOf: rows[i..<s]); i = s; continue
+            }
+
+            for (dRow, iRow) in zip(deleted, inserted) {
+                let a = dRow.leftSpans.map(\.text).joined()
+                let b = iRow.rightSpans.map(\.text).joined()
+                let (ls, rs) = inlineSpans(a, b)
+                result.append(DiffRow(left: dRow.left, right: iRow.right, kind: .changed,
+                                      leftSpans: ls, rightSpans: rs))
+            }
+            i = s
+        }
+        return result
     }
 }
