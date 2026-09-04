@@ -14,16 +14,16 @@ sayı mevcut uzunluktur.
 ProMDEditor
 ```
 
-**Alt başlık (30)** — 30
+**Alt başlık (30)** — 29
 ```
-Markdown editörü ve Quick Look
+Markdown, kaybolan biçim yok
 ```
 
 **Tanıtım metni / Promotional Text (170)** — 145
 > İnceleme gerektirmeden istediğin zaman değiştirebildiğin tek alan budur.
 > Kampanya, yeni özellik duyurusu için kullan.
 ```
-36 tema, canlı biçimlendirme, Quick Look önizlemesi. Yeni: ⌘4 ile iki Markdown dosyasını yan yana karşılaştır, farkları tek tıkla iki yöne aktar.
+İki .md dosyasını yan yana aç, farkları tek tıkla iki yöne taşı. 36 tema, Finder'da boşluk tuşuyla önizleme. Dosyan hep düz Markdown kalır.
 ```
 
 **Anahtar kelimeler / Keywords (100)** — 90
@@ -35,9 +35,14 @@ markdown,md,editör,önizleme,quick look,tema,karşılaştırma,diff,gfm,tablo,h
 
 **Açıklama / Description (4000)**
 ```
-ProMDEditor, macOS için bir Markdown düzenleyici, görüntüleyici ve Quick Look
-eklentisidir. Dosyaların her zaman düz .md olarak saklanır — WYSIWYG dönüşüm
-kaybı yoktur, yazdığın metin diskte aynen o metindir.
+Çoğu Markdown editörü senin metnini kendi biçimine çevirir, sonra geri
+verirken bir şeyler kaybolur. ProMDEditor çevirmez. Yazdığın karakter diskte
+duran karakterdir — git diff'in temiz kalır, dosyanı hangi araçla açarsan aç
+aynı görünür.
+
+Karşılığında biçimi görmekten vazgeçmezsin: başlıklar gerçek boyutunda,
+kalın gerçekten kalın, kod tek aralıklı. Markdown işaretleri soluk gri durur,
+yani hem biçimi görürsün hem kaynağı.
 
 CANLI BİÇİMLENDİRME
 Başlıklar gerçek boyutunda görünür, **kalın** kalın, *italik* italik, kod tek
@@ -92,14 +97,14 @@ swift-markdown kitaplığını kullanır.
 
 ## English
 
-**Subtitle (30)** — 28
+**Subtitle (30)** — 29
 ```
-Markdown editor & Quick Look
+Markdown that stays Markdown
 ```
 
 **Promotional Text (170)** — 150
 ```
-36 themes, live formatting, Quick Look previews. New: compare two Markdown files side by side with ⌘4 and move any difference either way in one click.
+Open two .md files side by side and move any difference either way in one click. 36 themes, Quick Look previews in Finder. Your file stays plain Markdown.
 ```
 
 **Keywords (100)** — 88
@@ -109,9 +114,14 @@ markdown,md,editor,preview,quicklook,theme,compare,diff,gfm,table,html,pdf,notes
 
 **Description (4000)**
 ```
-ProMDEditor is a Markdown editor, viewer and Quick Look extension for macOS.
-Your files are always stored as plain .md — no WYSIWYG conversion loss. What
-you type is exactly what lands on disk.
+Most Markdown editors translate your text into their own format, and something
+goes missing on the way back. ProMDEditor never translates. The character you
+type is the character on disk — your git diffs stay clean, and the file looks
+the same in whatever tool opens it next.
+
+You give up nothing in return: headings render at their real size, bold is
+genuinely bold, code is monospaced. The Markdown markers stay visible in muted
+grey, so you see the formatting and the source at once.
 
 LIVE FORMATTING
 Headings render at their real size, **bold** is bold, *italic* is italic, code
