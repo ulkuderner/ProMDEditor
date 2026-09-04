@@ -64,7 +64,16 @@ end tell
 EOF
 
 sync
-hdiutil detach "$MOUNT" >/dev/null
+# Spotlight/Finder birimi bir sure daha tutabildigi icin detach ilk denemede
+# "Resource busy" ile dusebiliyor. Birkac kez dene, sonra zorla ayir.
+for i in 1 2 3 4 5; do
+    hdiutil detach "$MOUNT" >/dev/null 2>&1 && break
+    if [ "$i" = 5 ]; then
+        hdiutil detach "$MOUNT" -force >/dev/null
+    else
+        sleep 2
+    fi
+done
 rm -f "$DMG"
 hdiutil convert "$RW_DMG" -format UDZO -imagekey zlib-level=9 -o "$DMG" >/dev/null
 
