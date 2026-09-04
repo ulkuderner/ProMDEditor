@@ -172,6 +172,11 @@ parsing.
 | Yaş sınırı | 4+ (anket: tüm sorulara "None") |
 | App Privacy | Data Not Collected |
 | Export compliance | Otomatik geçer (`ITSAppUsesNonExemptEncryption` = false) |
+| Arayüz dilleri | İngilizce (taban), Türkçe, Almanca, İspanyolca, Fransızca, İtalyanca |
+
+Uygulama altı dilde yerelleştirildi; App Store Connect'te bu diller için ayrı
+listeleme metni ekleyebilirsin. Zorunlu değil — eklemediğin dillerde birincil
+dilin metni gösterilir.
 
 ## Ekran görüntüleri
 
@@ -182,11 +187,14 @@ Mac için kabul edilen boyutlar — hepsi 16:10:
 | 1280 × 800 | 1440 × 900 |
 | 2560 × 1600 | 2880 × 1800 |
 
-En az 1, en fazla 10 adet. `Tools/make_screenshots.sh` bunları üretir.
+En az 1, en fazla 10 adet.
 
-Önerilen sıra:
-1. Bölünmüş görünüm — solda editör, sağda önizleme (ürünün ana vaadi)
-2. Dosya karşılaştırma (⌘4) — ayırt edici özellik
-3. Tema seçici açık — 36 tema
-4. Finder'da Quick Look önizlemesi
-5. Tipografi ayarları
+Hazır olanlar — `dist/screenshots/`, hepsi 2560 × 1600, İngilizce arayüz:
+
+| # | Dosya | İçerik |
+|---|---|---|
+| 1 | `01-split-view.png` | Bölünmüş görünüm — solda editör, sağda önizleme |
+| 2 | `02-file-comparison.png` | Dosya karşılaştırma (⌘4), kelime bazlı farklar |
+| 3 | `03-themes.png` | Tema menüsü açık |
+
+Eklenebilecekler: Finder'da Quick Look önizlemesi, tipografi ayarları.
