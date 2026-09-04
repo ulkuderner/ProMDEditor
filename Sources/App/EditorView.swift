@@ -48,12 +48,41 @@ struct EditorView: NSViewRepresentable {
         context.coordinator.parent = self
 
         if textView.string != text {
-            let selection = textView.selectedRange()
-            textView.string = text
-            textView.setSelectedRange(NSRange(location: min(selection.location, text.utf16.count), length: 0))
+            applyExternalText(text, to: textView, coordinator: context.coordinator)
         }
         applyAppearance(textView)
         MarkdownHighlighter.highlight(textView.textStorage!, settings: settings, theme: theme)
+    }
+
+    /// Disaridan gelen metni (ornegin karsilastirma modunda `←` aktarmasi)
+    /// **undo kaydeden** yoldan uygular.
+    ///
+    /// `textView.string = ...` undo manager'a hicbir sey kaydetmez; bu hem
+    /// ⌘Z'nin aktarmayi geri almamasina hem de yigina eski metnin araliklarina
+    /// kayitli bayat islemlerin kalmasina (⌘Z'de `NSRangeException`) yol acardi
+    /// — bkz. Bulgu C3. `shouldChangeText` + `replaceCharacters` + `didChangeText`
+    /// ucusu, kullanicinin kendi yazmasiyla ayni undo kaydini uretir.
+    private func applyExternalText(_ yeni: String, to textView: NSTextView,
+                                   coordinator: Coordinator) {
+        guard let storage = textView.textStorage else { return }
+        let tumu = NSRange(location: 0, length: storage.length)
+
+        // Liste devami gibi ozel delegate davranislari bu toplu degisimde
+        // devreye girmemeli; ayrica olusacak `textDidChange` binding'i
+        // gorunum guncellemesi sirasinda tekrar yazmamali.
+        coordinator.isApplyingExternalText = true
+        defer { coordinator.isApplyingExternalText = false }
+
+        let selection = textView.selectedRange()
+        guard textView.shouldChangeText(in: tumu, replacementString: yeni) else {
+            // Undo kaydeden yol reddedilirse metni yine de senkron tutariz.
+            textView.string = yeni
+            textView.setSelectedRange(NSRange(location: min(selection.location, yeni.utf16.count), length: 0))
+            return
+        }
+        storage.replaceCharacters(in: tumu, with: yeni)
+        textView.didChangeText()
+        textView.setSelectedRange(NSRange(location: min(selection.location, yeni.utf16.count), length: 0))
     }
 
     private func applyAppearance(_ textView: NSTextView) {
@@ -70,6 +99,12 @@ struct EditorView: NSViewRepresentable {
         var parent: EditorView
         weak var textView: NSTextView?
         private var formatObserver: NSObjectProtocol?
+
+        /// `updateNSView` disaridan gelen metni uygularken true olur.
+        /// Bu sirada binding'e geri yazmayiz (gorunum guncellemesi icinde
+        /// durum degistirmek olurdu) ve liste devami gibi yazim yardimcilari
+        /// devre disi kalir (bkz. Bulgu C3).
+        var isApplyingExternalText = false
 
         init(_ parent: EditorView) {
             self.parent = parent
@@ -102,7 +137,7 @@ struct EditorView: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let tv = notification.object as? NSTextView, let storage = tv.textStorage else { return }
-            parent.text = tv.string
+            if !isApplyingExternalText { parent.text = tv.string }
             let selection = tv.selectedRange()
             MarkdownHighlighter.highlight(storage, settings: parent.settings, theme: parent.theme)
             tv.setSelectedRange(selection)
@@ -113,6 +148,7 @@ struct EditorView: NSViewRepresentable {
         func textView(_ textView: NSTextView,
                       shouldChangeTextIn affectedCharRange: NSRange,
                       replacementString: String?) -> Bool {
+            guard !isApplyingExternalText else { return true }
             guard replacementString == "\n" else { return true }
             let ns = textView.string as NSString
             let lineRange = ns.lineRange(for: NSRange(location: affectedCharRange.location, length: 0))
