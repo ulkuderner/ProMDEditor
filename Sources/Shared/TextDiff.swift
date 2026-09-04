@@ -427,3 +427,36 @@ extension TextDiff {
 enum Side {
     case left, right
 }
+
+// MARK: - Hunk uygulama
+
+extension TextDiff {
+
+    /// Bir hunk'i `source` tarafindan karsi tarafa aktarir.
+    ///
+    /// Saf fonksiyon: diski bilmez, iki yeni metin dondurur.
+    /// Kaynak taraf hicbir zaman degismez. Hedef tarafin satir sonu bicimi
+    /// ve sondaki yeni satiri korunur.
+    static func apply(hunk: DiffHunk, source: Side,
+                      left: String, right: String) -> (left: String, right: String) {
+        let l = split(left)
+        let r = split(right)
+
+        switch source {
+        case .right:
+            let yeni = replacing(l.lines, hunk.leftLines, with: Array(r.lines[hunk.rightLines]))
+            return (join(yeni, like: l), right)
+        case .left:
+            let yeni = replacing(r.lines, hunk.rightLines, with: Array(l.lines[hunk.leftLines]))
+            return (left, join(yeni, like: r))
+        }
+    }
+
+    private static func replacing(_ lines: [String], _ range: Range<Int>,
+                                  with yeni: [String]) -> [String] {
+        var result = Array(lines[0..<range.lowerBound])
+        result.append(contentsOf: yeni)
+        result.append(contentsOf: lines[range.upperBound...])
+        return result
+    }
+}

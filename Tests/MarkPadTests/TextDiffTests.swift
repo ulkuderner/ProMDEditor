@@ -273,4 +273,94 @@ final class TextDiffTests: XCTestCase {
         let sag = "a\n1\nc\nd\ne\nf\ng\n2\ni\n"
         XCTAssertEqual(TextDiff.compare(left: sol, right: sag).hunks.map(\.id), [0, 1])
     }
+    // MARK: - apply
+
+    func testApplySagdanSolaDegisenSatir() {
+        let sol = "a\nX\nc\n", sag = "a\nY\nc\n"
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, yeniSag) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, "a\nY\nc\n")
+        XCTAssertEqual(yeniSag, sag, "kaynak taraf degismemeli")
+    }
+
+    func testApplySoldanSagaDegisenSatir() {
+        let sol = "a\nX\nc\n", sag = "a\nY\nc\n"
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, yeniSag) = TextDiff.apply(hunk: h, source: .left, left: sol, right: sag)
+        XCTAssertEqual(yeniSag, "a\nX\nc\n")
+        XCTAssertEqual(yeniSol, sol, "kaynak taraf degismemeli")
+    }
+
+    func testApplySafEklemeyiAlir() {
+        let sol = "a\nc\n", sag = "a\nb\nc\n"
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, _) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, "a\nb\nc\n")
+    }
+
+    func testApplySafSilmeyiAlir() {
+        let sol = "a\nb\nc\n", sag = "a\nc\n"
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, _) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, "a\nc\n")
+    }
+
+    /// Ana degismez: uygulanan hunk bir sonraki hesapta artik yoktur.
+    func testApplySonrasiHunkKaybolur() {
+        let sol = "a\nX\nc\nd\ne\nf\ng\nY\ni\n"
+        let sag = "a\n1\nc\nd\ne\nf\ng\n2\ni\n"
+        let once = TextDiff.compare(left: sol, right: sag)
+        XCTAssertEqual(once.hunks.count, 2)
+
+        let (yeniSol, yeniSag) = TextDiff.apply(hunk: once.hunks[0], source: .right,
+                                                left: sol, right: sag)
+        XCTAssertEqual(TextDiff.compare(left: yeniSol, right: yeniSag).hunks.count, 1)
+    }
+
+    /// Tum hunk'lar sagdan alininca sol metin sag metne esitlenmeli.
+    func testTumHunklarSagdanAlinincaEsitlenir() {
+        var sol = "bas\nA\nB\nortak\nC\nson\n"
+        let sag = "bas\nX\nortak\nY\nZ\nson\n"
+        var guvenlik = 0
+        while true {
+            let r = TextDiff.compare(left: sol, right: sag)
+            guard let h = r.hunks.first else { break }
+            sol = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag).left
+            guvenlik += 1
+            XCTAssertLessThan(guvenlik, 20, "yakinsamadi")
+        }
+        XCTAssertEqual(sol, sag)
+    }
+
+    /// Ayni sey ters yonde: sag metin sol metne esitlenmeli.
+    func testTumHunklarSoldanVerilinceEsitlenir() {
+        let sol = "bas\nA\nB\nortak\nC\nson\n"
+        var sag = "bas\nX\nortak\nY\nZ\nson\n"
+        var guvenlik = 0
+        while true {
+            let r = TextDiff.compare(left: sol, right: sag)
+            guard let h = r.hunks.first else { break }
+            sag = TextDiff.apply(hunk: h, source: .left, left: sol, right: sag).right
+            guvenlik += 1
+            XCTAssertLessThan(guvenlik, 20, "yakinsamadi")
+        }
+        XCTAssertEqual(sag, sol)
+    }
+
+    /// Hedef taraf CRLF ise, LF kaynaktan alinan satirlar da CRLF olmali.
+    func testApplyHedefinSatirSonunuKorur() {
+        let sol = "a\r\nX\r\nc\r\n"      // CRLF
+        let sag = "a\nY\nc\n"            // LF
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, _) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, "a\r\nY\r\nc\r\n")
+    }
+
+    func testApplySondakiYeniSatiriKorur() {
+        let sol = "a\nX"                 // sonda yeni satir YOK
+        let sag = "a\nY\n"               // sonda yeni satir VAR
+        let h = TextDiff.compare(left: sol, right: sag).hunks[0]
+        let (yeniSol, _) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, "a\nY")
+    }
 }
