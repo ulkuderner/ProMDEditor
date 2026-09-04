@@ -55,16 +55,16 @@ jobs:
           body: |
             ## Kurulum
 
-            DMG'yi açıp MarkPad'i Applications klasörüne sürükleyin.
+            DMG'yi açıp ProMDEditor'u Applications klasörüne sürükleyin.
 
             Quick Look önizlemesini etkinleştirmek için:
 
             ```bash
-            pluginkit -a /Applications/MarkPad.app/Contents/PlugIns/MarkPadQuickLook.appex
+            pluginkit -a /Applications/ProMDEditor.app/Contents/PlugIns/MarkPadQuickLook.appex
             qlmanage -r && killall Finder
             ```
 
             > **Not:** Bu paket ad-hoc imzalıdır, notarize edilmemiştir. macOS
             > açılışta uyarı verecektir. İlk açılışta uygulamaya sağ tıklayıp
             > **Aç** deyin veya şunu çalıştırın:
-            > `xattr -dr com.apple.quarantine /Applications/MarkPad.app`
+            > `xattr -dr com.apple.quarantine /Applications/ProMDEditor.app`

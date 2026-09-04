@@ -8,7 +8,7 @@ final class CompareControllerTests: XCTestCase {
 
     /// Testlere ozel, uygulamanin canli App Group deposundan tamamen ayri
     /// bir `UserDefaults` suite'i. Boylece bookmark testleri gelistiricinin
-    /// MarkPad ayarlarini kirletmez ve testler birbirinden yalitik kalir
+    /// ProMDEditor ayarlarini kirletmez ve testler birbirinden yalitik kalir
     /// (bkz. Defter #7).
     private var suiteName: String!
     private var defaults: UserDefaults!

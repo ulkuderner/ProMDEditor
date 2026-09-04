@@ -50,7 +50,7 @@ struct CompareView: View {
         .onChange(of: documentText) { yeni in
             controller.recompute(against: yeni, immediately: false)
         }
-        .alert("MarkPad", isPresented: Binding(
+        .alert("ProMDEditor", isPresented: Binding(
             get: { controller.alertMessage != nil },
             set: { if !$0 { controller.alertMessage = nil } }
         )) {

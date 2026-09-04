@@ -1,4 +1,4 @@
-# MarkPad
+# ProMDEditor
 
 macOS için Markdown düzenleyici + görüntüleyici + **Quick Look** eklentisi.
 Finder'da bir `.md` dosyası seçip boşluk tuşuna bastığında render edilmiş halini gösterir;
@@ -19,7 +19,7 @@ Dosya her zaman **düz `.md`** olarak saklanır — WYSIWYG dönüşüm kaybı y
   katlanır. Her fark bloğu çift yönlü aktarılabilir: `←` karşı dosyadaki
   bölümü açık belgeye alır, `→` bölümü karşı dosyaya yazar (bellekte kalır,
   diske yazmak için ayrı "Karşı dosyayı kaydet" adımı gerekir). Karşı dosya
-  açık belgeden bağımsız kaydedilir; MarkPad dışında değiştiyse üzerine
+  açık belgeden bağımsız kaydedilir; ProMDEditor dışında değiştiyse üzerine
   yazmadan önce onay ister.
 - GFM: tablolar, görev listeleri, üstü çizili, fenced code.
 - **36 tema** — İstanbul Day/Night (varsayılan), GitHub, Ayu, Night Owl, Kanagawa,
@@ -71,10 +71,10 @@ Eklentiler yalnızca uygulama düzgün bir konumdayken yüklenir:
 
 ```bash
 # Xcode'un ürettiği .app'i Uygulamalar'a kopyala
-cp -R ~/Library/Developer/Xcode/DerivedData/MarkPad-*/Build/Products/Debug/MarkPad.app /Applications/
+cp -R ~/Library/Developer/Xcode/DerivedData/MarkPad-*/Build/Products/Debug/ProMDEditor.app /Applications/
 
 # Eklentiyi kaydet ve Quick Look'u sıfırla
-pluginkit -a /Applications/MarkPad.app/Contents/PlugIns/MarkPadQuickLook.appex
+pluginkit -a /Applications/ProMDEditor.app/Contents/PlugIns/MarkPadQuickLook.appex
 qlmanage -r && qlmanage -r cache
 killall Finder
 ```
@@ -86,7 +86,7 @@ pluginkit -m -p com.apple.quicklook.preview | grep -i markpad   # + ile başlama
 qlmanage -p ornek.md                                            # önizlemeyi ayrı pencerede aç
 ```
 
-Hâlâ ham metin görünüyorsa: Finder'da bir `.md` dosyasına ⌘I → *Birlikte Aç* → **MarkPad** →
+Hâlâ ham metin görünüyorsa: Finder'da bir `.md` dosyasına ⌘I → *Birlikte Aç* → **ProMDEditor** →
 *Tümünü Değiştir*. macOS önizleme sağlayıcısını çoğu zaman varsayılan uygulamaya göre seçer.
 
 ## Dosya düzeni
@@ -127,14 +127,14 @@ Tools/
 ./Tools/make_dmg.sh "Developer ID Application: Ad (TEAMID)"   # dağıtım için
 ```
 
-Çıktı `dist/MarkPad-<sürüm>.dmg`. Ad-hoc imzalı paket Gatekeeper tarafından
+Çıktı `dist/ProMDEditor-<sürüm>.dmg`. Ad-hoc imzalı paket Gatekeeper tarafından
 reddedilir; başka makinelerde sorunsuz açılması için Developer ID imzası ve
 notarization gerekir:
 
 ```bash
-xcrun notarytool submit dist/MarkPad-1.0.dmg \
+xcrun notarytool submit dist/ProMDEditor-1.0.dmg \
   --apple-id <apple-id> --team-id <TEAMID> --wait
-xcrun stapler staple dist/MarkPad-1.0.dmg
+xcrun stapler staple dist/ProMDEditor-1.0.dmg
 ```
 
 ### Mac App Store

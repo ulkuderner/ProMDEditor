@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// MarkPad uygulama ikonunu Core Graphics ile uretir.
+// ProMDEditor uygulama ikonunu Core Graphics ile uretir.
 // Kullanim: swift Tools/MakeIcon.swift <cikti_klasoru>
 
 import AppKit
@@ -90,9 +90,9 @@ func drawIcon(size s: CGFloat) -> NSBitmapImageRep {
     ctx.strokePath()
     ctx.restoreGState()
 
-    // MARK: Glif — "M" + asagi ok, altinda h1 cizgisi
+    // MARK: Glif — "MD" + asagi ok, altinda h1 cizgisi
 
-    let fontSize = body.width * 0.46
+    let fontSize = body.width * 0.31
     let descriptor = NSFont.systemFont(ofSize: fontSize, weight: .black)
         .fontDescriptor.withDesign(.rounded)
     let font = descriptor.flatMap { NSFont(descriptor: $0, size: fontSize) }
@@ -102,11 +102,11 @@ func drawIcon(size s: CGFloat) -> NSBitmapImageRep {
         .font: font,
         .foregroundColor: NSColor(cgColor: inkWhite)!
     ]
-    let mString = NSAttributedString(string: "M", attributes: attrs)
+    let mString = NSAttributedString(string: "MD", attributes: attrs)
     let mSize = mString.size()
 
-    let chevW = body.width * 0.215
-    let gap = body.width * 0.045
+    let chevW = body.width * 0.175
+    let gap = body.width * 0.038
     let groupW = mSize.width + gap + chevW
     let groupX = body.midX - groupW / 2
     let baselineY = body.minY + body.height * 0.345
@@ -118,7 +118,7 @@ func drawIcon(size s: CGFloat) -> NSBitmapImageRep {
     let cy = baselineY + mSize.height * 0.44
     ctx.saveGState()
     ctx.setStrokeColor(amber)
-    ctx.setLineWidth(body.width * 0.070)
+    ctx.setLineWidth(body.width * 0.058)
     ctx.setLineCap(.round)
     ctx.setLineJoin(.round)
     ctx.move(to: CGPoint(x: cx - chevW / 2, y: cy + chevW * 0.28))

@@ -45,7 +45,7 @@ struct MarkdownDocument: FileDocument {
     > Alıntı bloğu.
 
     ```swift
-    print("Merhaba, MarkPad")
+    print("Merhaba, ProMDEditor")
     ```
 
     | Sütun | Açıklama |

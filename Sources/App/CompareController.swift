@@ -258,7 +258,7 @@ final class CompareController: ObservableObject {
 
     // MARK: - Kaydetme
 
-    /// Dosya MarkPad disinda degistiyse true.
+    /// Dosya ProMDEditor disinda degistiyse true.
     func otherChangedOnDisk() -> Bool {
         guard let url = otherURL, let bilinen = lastKnownModification,
               let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
@@ -271,7 +271,7 @@ final class CompareController: ObservableObject {
 
         if otherChangedOnDisk() {
             let a = NSAlert()
-            a.messageText = "Dosya MarkPad dışında değişti"
+            a.messageText = "Dosya ProMDEditor dışında değişti"
             a.informativeText = "\(url.lastPathComponent) başka bir yerde düzenlenmiş. Üzerine yazılsın mı?"
             a.addButton(withTitle: "Üzerine yaz")
             a.addButton(withTitle: "Vazgeç")

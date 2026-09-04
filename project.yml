@@ -42,7 +42,8 @@ targets:
     settings:
       groups: [common]
       base:
-        PRODUCT_NAME: MarkPad
+        PRODUCT_NAME: ProMDEditor
+        PRODUCT_MODULE_NAME: MarkPad
         PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad
         INFOPLIST_FILE: Sources/App/Info.plist
         CODE_SIGN_ENTITLEMENTS: Sources/App/MarkPad.entitlements
@@ -81,6 +82,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.Tests
         GENERATE_INFOPLIST_FILE: YES
+        # XcodeGen TEST_HOST'u hedef adindan turetir; urun adi ProMDEditor oldugu
+        # icin elle gecersiz kiliyoruz.
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/ProMDEditor.app/Contents/MacOS/ProMDEditor
 
 schemes:
   MarkPad:

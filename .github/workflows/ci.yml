@@ -53,7 +53,7 @@ jobs:
 
       - name: Paket icerigini dogrula
         run: |
-          APP=.build/Build/Products/Debug/MarkPad.app
+          APP=.build/Build/Products/Debug/ProMDEditor.app
           fail() { echo "::error::$1"; exit 1; }
 
           test -d "$APP/Contents/PlugIns/MarkPadQuickLook.appex" \

@@ -1,12 +1,13 @@
 #!/bin/bash
-# MarkPad icin dagitima hazir DMG uretir.
+# ProMDEditor icin dagitima hazir DMG uretir.
 #   ./Tools/make_dmg.sh            -> ad-hoc imza (yalnizca bu makinede sorunsuz)
 #   ./Tools/make_dmg.sh "Developer ID Application: Ad (TEAMID)"
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-NAME="MarkPad"
+PROJECT="MarkPad"      # Xcode proje/scheme adi
+NAME="ProMDEditor"     # urun ve DMG adi
 VERSION=$(grep -A0 'MARKETING_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')
 IDENTITY="${1:--}"
 DIST="$ROOT/dist"
@@ -16,7 +17,7 @@ RW_DMG="$(mktemp -d)/rw.dmg"
 
 echo "==> Release derleniyor (imza: $IDENTITY)"
 xcodegen generate >/dev/null
-xcodebuild -project "$NAME.xcodeproj" -scheme "$NAME" -configuration Release \
+xcodebuild -project "$PROJECT.xcodeproj" -scheme "$PROJECT" -configuration Release \
     -destination 'platform=macOS' -derivedDataPath "$ROOT/.build" \
     CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" \
     DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" \

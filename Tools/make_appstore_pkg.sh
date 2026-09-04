@@ -1,5 +1,5 @@
 #!/bin/bash
-# MarkPad'i Mac App Store'a yuklenebilir .pkg olarak paketler.
+# ProMDEditor'u Mac App Store'a yuklenebilir .pkg olarak paketler.
 #
 #   ./Tools/make_appstore_pkg.sh
 #
@@ -13,7 +13,7 @@
 # Dagitim sertifikasi ve provisioning profili yoksa -allowProvisioningUpdates
 # bunlari Xcode hesabi uzerinden olusturur.
 #
-# Cikti: dist/appstore/MarkPad.pkg  -> Transporter veya Xcode Organizer ile yuklenir.
+# Cikti: dist/appstore/ProMDEditor.pkg  -> Transporter veya Xcode Organizer ile yuklenir.
 # NOT: App Store DMG kabul etmez; Tools/make_dmg.sh yalnizca Store disi dagitim icindir.
 set -euo pipefail
 
@@ -21,7 +21,7 @@ cd "$(dirname "$0")/.."
 ROOT="$PWD"
 TEAM="W4A4C428H6"
 DIST="$ROOT/dist"
-ARCHIVE="$DIST/MarkPad.xcarchive"
+ARCHIVE="$DIST/ProMDEditor.xcarchive"
 EXPORT="$DIST/appstore"
 OPTS="$(mktemp -d)/ExportOptions.plist"
 
