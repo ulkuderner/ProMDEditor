@@ -10,7 +10,10 @@ import UniformTypeIdentifiers
 final class CompareController: ObservableObject {
 
     @Published private(set) var otherURL: URL?
-    @Published var otherText: String = ""
+    /// Karsi dosyanin bellekteki metni. Disaridan yalnizca
+    /// `setOtherText(_:documentText:)` ile degistirilir; boylece her yazma
+    /// tek noktadan gecer ve diff'in bayat kalmasi onlenir (bkz. Bulgu C1).
+    @Published private(set) var otherText: String = ""
     @Published private(set) var result: DiffResult = .empty
     @Published private(set) var otherIsDirty = false
     @Published var alertMessage: String?
@@ -29,6 +32,15 @@ final class CompareController: ObservableObject {
     private var lastKnownModification: Date?
 
     private var recomputeTask: Task<Void, Never>?
+
+    /// Bookmark'in yazildigi depo. Uretimde uygulamanin App Group
+    /// `UserDefaults`'u; testler yalitilmis bir suite enjekte eder
+    /// (bkz. Defter #7).
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = AppSettings.shared.defaults) {
+        self.defaults = defaults
+    }
 
     private static let bookmarkKey = "compareBookmark"
     /// 10 MB ustu dosyalarda kullaniciya onay sorulur.
@@ -184,10 +196,25 @@ final class CompareController: ObservableObject {
         return sol
     }
 
-    func undoLastPush() {
+    /// Karsi dosyaya yapilan son aktarmayi geri alir.
+    ///
+    /// `otherText` degistigi icin diff spec §7'nin "her aktarmadan sonra diff
+    /// bastan hesaplanir" kuralina uyacak sekilde YENIDEN hesaplanir; aksi
+    /// halde `result` artik var olmayan bir metne ait hunk'lar tutar ve
+    /// sonraki aktarma yanlis satirlari tasir (bkz. Bulgu C1).
+    func undoLastPush(documentText: String) {
         guard let onceki = pushUndoStack.popLast() else { return }
         otherText = onceki
         otherIsDirty = !pushUndoStack.isEmpty || otherChangedFromDisk()
+        recompute(against: documentText)
+    }
+
+    /// `otherText`'i disaridan degistirmenin tek yolu (test ve arayuz icin).
+    /// Metin degistigi icin diff de yeniden hesaplanir.
+    func setOtherText(_ metin: String, documentText: String) {
+        otherText = metin
+        otherIsDirty = true
+        recompute(against: documentText)
     }
 
     private func otherChangedFromDisk() -> Bool {
@@ -238,15 +265,24 @@ final class CompareController: ObservableObject {
 
     /// Testlerde `chooseFile()`in basari yolunda yaptigi bookmark kaydini
     /// gercek panel acmadan tetiklemek icin (bkz. Bulgu M2).
-    func storeBookmarkForTesting(_ url: URL) { storeBookmark(url) }
+    /// Bookmark gercekten uretilebildiyse true doner; testler bookmark
+    /// uretilemeyen sandbox durumunda yanlis nedenle gecmesin diye.
+    @discardableResult
+    func storeBookmarkForTesting(_ url: URL) -> Bool { storeBookmark(url) }
 
     // MARK: - Bookmark
 
-    private func storeBookmark(_ url: URL) {
-        let data = try? url.bookmarkData(options: .withSecurityScope,
-                                         includingResourceValuesForKeys: nil,
-                                         relativeTo: nil)
-        AppSettings.shared.defaults.set(data, forKey: Self.bookmarkKey)
+    /// Bookmark uretilemezse (ornegin security-scope izni yoksa) eski kaydi
+    /// silmek yerine oldugu gibi birakiriz: `set(nil, forKey:)` anahtari
+    /// tamamen kaldirir ve davranisi sandbox durumuna bagimli kilardi
+    /// (bkz. Defter #7).
+    @discardableResult
+    private func storeBookmark(_ url: URL) -> Bool {
+        guard let data = try? url.bookmarkData(options: .withSecurityScope,
+                                               includingResourceValuesForKeys: nil,
+                                               relativeTo: nil) else { return false }
+        defaults.set(data, forKey: Self.bookmarkKey)
+        return true
     }
 
     /// Son karsilastirilan dosyayi geri yukler. Cozulemezse sessizce
@@ -255,7 +291,7 @@ final class CompareController: ObservableObject {
         // Kullanici bu oturumda paneli bilincli olarak Vazgec ile kapattiysa
         // bayat bir bookmark'i sessizce yuklemeyiz (bkz. Bulgu M2).
         guard !didDeclineChoice else { return }
-        guard let data = AppSettings.shared.defaults.data(forKey: Self.bookmarkKey) else { return }
+        guard let data = defaults.data(forKey: Self.bookmarkKey) else { return }
         var stale = false
         guard let url = try? URL(resolvingBookmarkData: data, options: .withSecurityScope,
                                  relativeTo: nil, bookmarkDataIsStale: &stale),

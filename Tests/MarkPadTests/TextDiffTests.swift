@@ -363,4 +363,57 @@ final class TextDiffTests: XCTestCase {
         let (yeniSol, _) = TextDiff.apply(hunk: h, source: .right, left: sol, right: sag)
         XCTAssertEqual(yeniSol, "a\nY")
     }
+
+    // MARK: - Bulgu C1 savunma katmani
+
+    /// Bayat bir hunk (uzerinde hesaplandigi metin degismis) uygulanmaya
+    /// calisilirsa `apply` cokmemeli ve metinlere dokunmamali.
+    func testApplyBayatHunkIleCokmezVeMetinleriDegistirmez() {
+        let sol = "a\nX\nc\n"
+        let sag = "a\nY\nc\n"
+        // Sag tarafta yalnizca 3 satir varken 7..<8 isteyen bir hunk.
+        let bayat = DiffHunk(id: 0, rows: 0..<1, leftLines: 1..<2, rightLines: 7..<8)
+
+        let (yeniSol, yeniSag) = TextDiff.apply(hunk: bayat, source: .right, left: sol, right: sag)
+        XCTAssertEqual(yeniSol, sol)
+        XCTAssertEqual(yeniSag, sag)
+
+        let bayat2 = DiffHunk(id: 0, rows: 0..<1, leftLines: 9..<12, rightLines: 1..<2)
+        let (yeniSol2, yeniSag2) = TextDiff.apply(hunk: bayat2, source: .left, left: sol, right: sag)
+        XCTAssertEqual(yeniSol2, sol)
+        XCTAssertEqual(yeniSag2, sag)
+    }
+
+    // MARK: - Bulgu C2: Myers `trace` bellegi girdi boyutuyla buyumemeli
+
+    /// `trace` penceresi dogru cozulmezse edit listesi bozulur; bu test
+    /// pencereli `backtrack`'in klasik senaryolarda ayni sonucu verdigini
+    /// dogrular.
+    func testMyersPencereliTraceIleDogruEditUretir() throws {
+        let a = Array("ABCABBA")
+        let b = Array("CBABAC")
+        let cozulmus = try XCTUnwrap(TextDiff.myers(a, b, maxD: 100))
+
+        // Edit listesi iki diziyi de birebir yeniden kurmali.
+        var solGeri: [Character] = [], sagGeri: [Character] = []
+        for e in cozulmus {
+            switch e {
+            case .keep(let l, let r): solGeri.append(a[l]); sagGeri.append(b[r])
+            case .delete(let l): solGeri.append(a[l])
+            case .insert(let r): sagGeri.append(b[r])
+            }
+        }
+        XCTAssertEqual(solGeri, a)
+        XCTAssertEqual(sagGeri, b)
+    }
+
+    /// `maxD` asildiginda `nil` donmeli — ve bunu yaparken bellek girdi
+    /// boyutuyla degil yalnizca `maxD` ile sinirli kalmali.
+    func testMyersMaxDAsilincaNilDoner() {
+        let a = (0..<300).map { "sol \($0)" }
+        let b = (0..<300).map { "sag \($0)" }
+        XCTAssertNil(TextDiff.myers(a, b, maxD: 10))
+        XCTAssertNotNil(TextDiff.myers(a, b, maxD: 600))
+    }
+
 }

@@ -6,14 +6,32 @@ final class CompareControllerTests: XCTestCase {
 
     private var tempDir: URL!
 
+    /// Testlere ozel, uygulamanin canli App Group deposundan tamamen ayri
+    /// bir `UserDefaults` suite'i. Boylece bookmark testleri gelistiricinin
+    /// MarkPad ayarlarini kirletmez ve testler birbirinden yalitik kalir
+    /// (bkz. Defter #7).
+    private var suiteName: String!
+    private var defaults: UserDefaults!
+
     override func setUpWithError() throws {
         tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        suiteName = "test.MarkPadCompare.\(UUID().uuidString)"
+        defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
     }
 
     override func tearDownWithError() throws {
         try? FileManager.default.removeItem(at: tempDir)
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults = nil
+        suiteName = nil
+    }
+
+    /// Bookmark'a dokunan testler icin: yalitilmis suite'i kullanan denetleyici.
+    private func yeniDenetleyici() -> CompareController {
+        CompareController(defaults: defaults)
     }
 
     private func yaz(_ ad: String, _ icerik: String) throws -> URL {
@@ -74,7 +92,7 @@ final class CompareControllerTests: XCTestCase {
         c.recompute(against: "a\nX\nc\n")
         _ = c.apply(hunk: c.result.hunks[0], source: .left, documentText: "a\nX\nc\n")
 
-        c.undoLastPush()
+        c.undoLastPush(documentText: "a\nX\nc\n")
         XCTAssertEqual(c.otherText, "a\nY\nc\n")
         XCTAssertFalse(c.canUndo)
     }
@@ -83,8 +101,7 @@ final class CompareControllerTests: XCTestCase {
         let url = try yaz("f.md", "eski\n")
         let c = CompareController()
         try c.load(url: url)
-        c.otherText = "yeni\n"
-        c.markDirtyForTesting()
+        c.setOtherText("yeni\n", documentText: "eski\n")
 
         c.saveOther()
         XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "yeni\n")
@@ -160,15 +177,16 @@ final class CompareControllerTests: XCTestCase {
 
     func testVazgecilinceBayatBookmarkOtomatikYuklenmez() throws {
         let url = try yaz("bookmark1.md", "onceki oturum\n")
-        let onceki = CompareController()
+        let onceki = yeniDenetleyici()
         try onceki.load(url: url)
         // `chooseFile()`in basari yolundaki bookmark kaydini gercek panel
         // acmadan taklit ediyoruz.
-        onceki.storeBookmarkForTesting(url)
+        try XCTSkipUnless(onceki.storeBookmarkForTesting(url),
+                          "security-scoped bookmark uretilemedi; test anlamsiz")
 
         // Yeni bir oturumu (yeni CompareController) ve kullanicinin ⇧⌘D
         // panelinde bilincli olarak Vazgec dedigini temsil ediyoruz.
-        let c = CompareController()
+        let c = yeniDenetleyici()
         c.declineChoiceForTesting()
         c.restoreBookmark()
 
@@ -180,16 +198,62 @@ final class CompareControllerTests: XCTestCase {
 
     func testVazgecmedenRestoreBookmarkNormalDavranisiKorur() throws {
         let url = try yaz("bookmark2.md", "onceki oturum 2\n")
-        let onceki = CompareController()
+        let onceki = yeniDenetleyici()
         try onceki.load(url: url)
-        onceki.storeBookmarkForTesting(url)
+        try XCTSkipUnless(onceki.storeBookmarkForTesting(url),
+                          "security-scoped bookmark uretilemedi; test anlamsiz")
 
         // Uygulama ilk acildiginda (kullanici hic Vazgec demeden) normal akis.
-        let c = CompareController()
+        let c = yeniDenetleyici()
         c.restoreBookmark()
 
         XCTAssertEqual(c.otherURL, url,
                         "Vazgec denilmediyse restoreBookmark eski davranisini korumali")
         XCTAssertEqual(c.otherText, "onceki oturum 2\n")
+    }
+
+    // MARK: - Bulgu C1: "Geri al" sonrasi diff bayat kalmamali
+
+    /// Aktarma + geri alma sonrasi `result`, artik var olmayan bir metne ait
+    /// satir araliklari tutuyorsa sonraki `←` aktarmasi dizi sinirlarini asar.
+    func testGeriAlSonrasiDiffYenidenHesaplanir() throws {
+        let belge = "I1\nI2\nI3\nc1\nc2\nc3\nc4\nL\n"
+        let url = try yaz("c1.md", "c1\nc2\nc3\nc4\nR\n")
+        let c = CompareController(defaults: defaults)
+        try c.load(url: url)
+        c.recompute(against: belge)
+        XCTAssertEqual(c.result.hunks.count, 2, "senaryo iki hunk bekliyor")
+
+        // Ilk hunk'i saga aktar: karsi dosya 8 satira cikar.
+        _ = c.apply(hunk: c.result.hunks[0], source: .left, documentText: belge)
+        let aktarmaSonrasi = c.result
+
+        c.undoLastPush(documentText: belge)
+
+        XCTAssertNotEqual(c.result.rows, aktarmaSonrasi.rows,
+                          "geri alma sonrasi diff yeniden hesaplanmali")
+        // Kalan hunk'larin araliklari guncel `otherText` icinde olmali.
+        let sagSatirSayisi = c.otherText.split(separator: "\n", omittingEmptySubsequences: false).count
+        for hunk in c.result.hunks {
+            XCTAssertLessThanOrEqual(hunk.rightLines.upperBound, sagSatirSayisi,
+                                     "bayat hunk arali\u{011F}i kaldi")
+        }
+
+        // Bayat hunk cokme senaryosu: son hunk'i belgeye almak cokmemeli.
+        if let son = c.result.hunks.last {
+            _ = c.apply(hunk: son, source: .right, documentText: belge)
+        }
+    }
+
+    func testSetOtherTextDiffiYenidenHesaplar() throws {
+        let url = try yaz("c1b.md", "a\nb\n")
+        let c = CompareController(defaults: defaults)
+        try c.load(url: url)
+        c.recompute(against: "a\nb\n")
+        XCTAssertTrue(c.result.hunks.isEmpty)
+
+        c.setOtherText("a\nZ\n", documentText: "a\nb\n")
+        XCTAssertFalse(c.result.hunks.isEmpty, "otherText degisince diff guncellenmeli")
+        XCTAssertTrue(c.otherIsDirty)
     }
 }

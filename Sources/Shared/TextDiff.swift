@@ -80,6 +80,16 @@ extension TextDiff {
     /// benzer iki dosyada D kucuktur. Klasik LCS matrisi yerine bu secildi
     /// cunku LCS O(n*m) bellek ister (5.000x5.000 satir = ~25M hucre).
     ///
+    /// ## Bellek (bkz. Bulgu C2)
+    /// `d` turunda `k` yalnizca `[-d, d]` araligina ulasir. Bu yuzden hem
+    /// calisma dizisi `v` hem de `trace`'e yazilan durum `maxD` ile sinirlidir;
+    /// dosya boyutuyla **hic** buyumez. Tepe bellek `O(maxD^2)`:
+    /// - Onceki hali: `min(n+m, maxD)` tur x `2(n+m)+1` hucre.
+    ///   4.000+4.000 satir -> 5.001 x 16.001 x 8B ~ 640 MB;
+    ///   10 MB / ~250.000 satirlik dosyada ~40 GB (cokerdi).
+    /// - Simdiki hali: tur basina yalnizca `2d+1` hucre, toplam
+    ///   `(maxD+1)^2` ~ 25M hucre x 8B ~ 200 MB tavan — girdi ne olursa olsun.
+    ///
     /// - Parameter maxD: izin verilen en buyuk fark sayisi. Asilirsa `nil`
     ///   doner ve cagiran kaba bir geri dusus uygular.
     static func myers<T: Equatable>(_ a: [T], _ b: [T], maxD: Int) -> [Edit]? {
@@ -87,13 +97,18 @@ extension TextDiff {
         let bound = n + m
         if bound == 0 { return [] }
 
-        let offset = bound
-        var v = [Int](repeating: 0, count: 2 * bound + 1)
+        // `k` en fazla `[-tavan, tavan]` araligina ulasir; `v`'yi n+m degil
+        // bu genislikte tutuyoruz.
+        let tavan = min(bound, max(0, maxD))
+        let offset = tavan
+        var v = [Int](repeating: 0, count: 2 * tavan + 1)
+        // trace[d] = d turunun BASINDAKI `v`'nin yalnizca [-d, d] penceresi;
+        // pencere icinde `k` degeri `trace[d][k + d]` konumundadir.
         var trace: [[Int]] = []
 
         var d = 0
-        while d <= min(bound, maxD) {
-            trace.append(v)          // trace[d] = d turunun BASINDAKI durum
+        while d <= tavan {
+            trace.append(Array(v[(offset - d)...(offset + d)]))
             var k = -d
             while k <= d {
                 var x: Int
@@ -108,7 +123,7 @@ extension TextDiff {
                 while x < n && y < m && a[x] == b[y] { x += 1; y += 1 }
                 v[k + offset] = x
                 if x >= n && y >= m {
-                    return backtrack(trace, offset: offset, n: n, m: m)
+                    return backtrack(trace, n: n, m: m)
                 }
                 k += 2
             }
@@ -118,20 +133,30 @@ extension TextDiff {
     }
 
     /// Kaydedilmis `V` durumlarindan geriye yurüyerek edit listesini kurar.
-    private static func backtrack(_ trace: [[Int]], offset: Int, n: Int, m: Int) -> [Edit] {
+    ///
+    /// `trace[d]` yalnizca `[-d, d]` penceresidir; bir `k` degerinin konumu
+    /// `k + d`'dir. Kenar `k` degerlerinde (`k == -d` / `k == d`) kosul kisa
+    /// devre yaptigi icin pencere disina erisim olmaz.
+    private static func backtrack(_ trace: [[Int]], n: Int, m: Int) -> [Edit] {
         var edits: [Edit] = []
         var x = n, y = m
 
         for d in stride(from: trace.count - 1, through: 0, by: -1) {
             let v = trace[d]
+            // Pencerenin disi her zaman "hic yazilmamis" demektir; tam
+            // genislikteki eski `v` orada da 0 tutuyordu, davranis ayni.
+            func deger(_ k: Int) -> Int {
+                let i = k + d
+                return (i >= 0 && i < v.count) ? v[i] : 0
+            }
             let k = x - y
             let prevK: Int
-            if k == -d || (k != d && v[k - 1 + offset] < v[k + 1 + offset]) {
+            if k == -d || (k != d && deger(k - 1) < deger(k + 1)) {
                 prevK = k + 1
             } else {
                 prevK = k - 1
             }
-            let prevX = v[prevK + offset]
+            let prevX = deger(prevK)
             let prevY = prevX - prevK
 
             while x > prevX && y > prevY {
@@ -442,6 +467,15 @@ extension TextDiff {
         let l = split(left)
         let r = split(right)
 
+        // Savunma katmani: hunk, uzerinde hesaplandigi metinlerden baska bir
+        // metne uygulanmaya calisiliyorsa (bayat `DiffResult`) araliklar dizi
+        // sinirlarini asabilir. Bu durumda cokmek yerine metinleri oldugu gibi
+        // geri dondururuz (bkz. Bulgu C1).
+        guard icerideMi(hunk.leftLines, l.lines.count),
+              icerideMi(hunk.rightLines, r.lines.count) else {
+            return (left, right)
+        }
+
         switch source {
         case .right:
             let yeni = replacing(l.lines, hunk.leftLines, with: Array(r.lines[hunk.rightLines]))
@@ -450,6 +484,12 @@ extension TextDiff {
             let yeni = replacing(r.lines, hunk.rightLines, with: Array(l.lines[hunk.leftLines]))
             return (left, join(yeni, like: r))
         }
+    }
+
+    /// Bir satir araliginin dizi sinirlari icinde olup olmadigi.
+    /// Bos aralik (saf ekleme noktasi) da gecerlidir.
+    private static func icerideMi(_ range: Range<Int>, _ count: Int) -> Bool {
+        range.lowerBound >= 0 && range.upperBound <= count
     }
 
     private static func replacing(_ lines: [String], _ range: Range<Int>,

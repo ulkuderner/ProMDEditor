@@ -60,14 +60,17 @@ struct CompareView: View {
 
             if controller.otherURL != nil {
                 if controller.canUndo {
-                    Button("Geri al") { controller.undoLastPush() }
+                    Button("Geri al") { controller.undoLastPush(documentText: documentText) }
                         .help("Karşı dosyaya yapılan son aktarmayı geri alır (⌘Z bu belgeye aittir)")
                 }
                 if controller.otherIsDirty {
                     Text("●").foregroundStyle(.orange)
                         .help("Karşı dosyada kaydedilmemiş değişiklik var")
+                    // Kisayol yok: ⇧⌘S `DocumentGroup`'un "Kopyasini Olustur"
+                    // komutuna ait; ayni kombinasyonu paylasmak iki komutun
+                    // düğmenin varligina gore yer degistirmesine yol acardi
+                    // (bkz. Bulgu I1). Spec §6 bu düğme icin kisayol istemiyor.
                     Button("Karşı dosyayı kaydet") { controller.saveOther() }
-                        .keyboardShortcut("s", modifiers: [.command, .shift])
                 }
                 Text(controller.otherName).font(.system(size: 11, weight: .semibold))
                 Button("Değiştir…") { chooseAndRecompute() }
