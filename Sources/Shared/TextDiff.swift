@@ -150,3 +150,122 @@ extension TextDiff {
         return edits.reversed()
     }
 }
+
+// MARK: - Sonuc tipleri
+
+enum DiffLineKind {
+    case equal, inserted, deleted, changed
+}
+
+/// Bir satirin icindeki parca. Parcalarin `text` birlesimi satirin
+/// birebir kendisidir; bu degismez tum uretim yollarinda korunur.
+struct InlineSpan: Equatable {
+    let text: String
+    let changed: Bool
+}
+
+/// Tabloda tek bir gorsel satir.
+/// `left` / `right`, ilgili taraftaki 0 tabanli satir indeksidir;
+/// o tarafta karsiligi yoksa nil olur ve bos dolgu cizilir.
+struct DiffRow: Equatable {
+    let left: Int?
+    let right: Int?
+    let kind: DiffLineKind
+    let leftSpans: [InlineSpan]
+    let rightSpans: [InlineSpan]
+}
+
+/// Bitisik farkli satirlarin olusturdugu blok.
+/// `rows` satir tablosundaki aralik; `leftLines` / `rightLines` kaynak
+/// metinlerdeki aralik. Saf ekleme/silmede bunlardan biri bos araliktir.
+struct DiffHunk: Identifiable, Equatable {
+    let id: Int
+    let rows: Range<Int>
+    let leftLines: Range<Int>
+    let rightLines: Range<Int>
+}
+
+struct DiffResult: Equatable {
+    let rows: [DiffRow]
+    let hunks: [DiffHunk]
+    let truncated: Bool
+
+    static let empty = DiffResult(rows: [], hunks: [], truncated: false)
+}
+
+// MARK: - compare
+
+extension TextDiff {
+
+    /// Fark sayisi bu esigi asarsa kaba geri dusus uygulanir.
+    static let maxDifferences = 5000
+
+    static func compare(left: String, right: String) -> DiffResult {
+        let a = split(left).lines
+        let b = split(right).lines
+
+        // Ortak bas ve son satirlari kirp: tipik duzenlemede farkin
+        // buyuk kismini eler ve Myers'i kucuk bir bolgede calistirir.
+        var head = 0
+        while head < a.count && head < b.count && a[head] == b[head] { head += 1 }
+
+        var tail = 0
+        while tail < a.count - head && tail < b.count - head
+                && a[a.count - 1 - tail] == b[b.count - 1 - tail] { tail += 1 }
+
+        let aMid = Array(a[head..<(a.count - tail)])
+        let bMid = Array(b[head..<(b.count - tail)])
+
+        var rows: [DiffRow] = []
+        rows.reserveCapacity(a.count + b.count)
+
+        for i in 0..<head {
+            rows.append(equalRow(left: i, right: i, text: a[i]))
+        }
+
+        var truncated = false
+        if let edits = myers(aMid, bMid, maxD: maxDifferences) {
+            for e in edits {
+                switch e {
+                case .keep(let l, let r):
+                    rows.append(equalRow(left: head + l, right: head + r, text: aMid[l]))
+                case .delete(let l):
+                    rows.append(DiffRow(left: head + l, right: nil, kind: .deleted,
+                                        leftSpans: [InlineSpan(text: aMid[l], changed: true)],
+                                        rightSpans: []))
+                case .insert(let r):
+                    rows.append(DiffRow(left: nil, right: head + r, kind: .inserted,
+                                        leftSpans: [],
+                                        rightSpans: [InlineSpan(text: bMid[r], changed: true)]))
+                }
+            }
+        } else {
+            // Geri dusus: orta bolgenin tamami silinmis + tamami eklenmis.
+            truncated = true
+            for (l, line) in aMid.enumerated() {
+                rows.append(DiffRow(left: head + l, right: nil, kind: .deleted,
+                                    leftSpans: [InlineSpan(text: line, changed: true)],
+                                    rightSpans: []))
+            }
+            for (r, line) in bMid.enumerated() {
+                rows.append(DiffRow(left: nil, right: head + r, kind: .inserted,
+                                    leftSpans: [],
+                                    rightSpans: [InlineSpan(text: line, changed: true)]))
+            }
+        }
+
+        for t in 0..<tail {
+            let l = a.count - tail + t
+            let r = b.count - tail + t
+            rows.append(equalRow(left: l, right: r, text: a[l]))
+        }
+
+        return DiffResult(rows: rows, hunks: [], truncated: truncated)
+    }
+
+    private static func equalRow(left: Int, right: Int, text: String) -> DiffRow {
+        let span = [InlineSpan(text: text, changed: false)]
+        return DiffRow(left: left, right: right, kind: .equal,
+                       leftSpans: span, rightSpans: span)
+    }
+}

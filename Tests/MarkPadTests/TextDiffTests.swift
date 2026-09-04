@@ -101,4 +101,70 @@ final class TextDiffTests: XCTestCase {
         let b = (0..<200).map { "sag-\($0)" }
         XCTAssertNil(TextDiff.myers(a, b, maxD: 10))
     }
+
+    // MARK: - compare (satir tablosu)
+
+    private func satirMetinleri(_ spans: [InlineSpan]) -> String {
+        spans.map(\.text).joined()
+    }
+
+    func testCompareAyniDosyaTumSatirlarEsit() {
+        let r = TextDiff.compare(left: "bir\niki\n", right: "bir\niki\n")
+        XCTAssertEqual(r.rows.count, 2)
+        XCTAssertTrue(r.rows.allSatisfy { $0.kind == .equal })
+        XCTAssertFalse(r.truncated)
+    }
+
+    func testCompareEklenenSatirSoldaBosluk() {
+        let r = TextDiff.compare(left: "bir\n", right: "bir\niki\n")
+        XCTAssertEqual(r.rows.count, 2)
+        XCTAssertEqual(r.rows[1].kind, .inserted)
+        XCTAssertNil(r.rows[1].left)
+        XCTAssertEqual(r.rows[1].right, 1)
+        XCTAssertEqual(satirMetinleri(r.rows[1].rightSpans), "iki")
+    }
+
+    func testCompareSilinenSatirSagdaBosluk() {
+        let r = TextDiff.compare(left: "bir\niki\n", right: "bir\n")
+        XCTAssertEqual(r.rows[1].kind, .deleted)
+        XCTAssertNil(r.rows[1].right)
+        XCTAssertEqual(r.rows[1].left, 1)
+    }
+
+    func testCompareBosDosyaKarsiTumuEklenmis() {
+        let r = TextDiff.compare(left: "", right: "a\nb\n")
+        XCTAssertEqual(r.rows.count, 2)
+        XCTAssertTrue(r.rows.allSatisfy { $0.kind == .inserted })
+    }
+
+    func testCompareIkisiDeBos() {
+        let r = TextDiff.compare(left: "", right: "")
+        XCTAssertTrue(r.rows.isEmpty)
+    }
+
+    /// Satir indeksleri her iki tarafta da 0'dan baslayip atlamadan artmali.
+    func testCompareIndekslerTutarli() {
+        let r = TextDiff.compare(left: "a\nb\nc\n", right: "a\nx\nc\nd\n")
+        XCTAssertEqual(r.rows.compactMap(\.left), [0, 1, 2])
+        XCTAssertEqual(r.rows.compactMap(\.right), [0, 1, 2, 3])
+    }
+
+    func testCompareCokFarkliDosyalarKirpilir() {
+        let sol = (0..<4000).map { "sol satir \($0)" }.joined(separator: "\n")
+        let sag = (0..<4000).map { "sag satir \($0)" }.joined(separator: "\n")
+        let r = TextDiff.compare(left: sol, right: sag)
+        XCTAssertTrue(r.truncated)
+        XCTAssertEqual(r.rows.filter { $0.kind == .deleted }.count, 4000)
+        XCTAssertEqual(r.rows.filter { $0.kind == .inserted }.count, 4000)
+    }
+
+    func testCompareKirpmaOrtakBasSonuKorur() {
+        // Ortak bas ve son varken geri dusus bile onlari .equal birakmali.
+        let sol = (["ayni bas"] + (0..<4000).map { "sol \($0)" } + ["ayni son"]).joined(separator: "\n")
+        let sag = (["ayni bas"] + (0..<4000).map { "sag \($0)" } + ["ayni son"]).joined(separator: "\n")
+        let r = TextDiff.compare(left: sol, right: sag)
+        XCTAssertTrue(r.truncated)
+        XCTAssertEqual(r.rows.first?.kind, .equal)
+        XCTAssertEqual(r.rows.last?.kind, .equal)
+    }
 }
