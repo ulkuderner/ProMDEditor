@@ -269,7 +269,6 @@ struct CompareView: View {
 
         var items: [DisplayItem] = []
         var i = 0
-        var foldID = 0
         while i < rows.count {
             if gorunur.contains(i) {
                 items.append(.row(index: i, id: i))
@@ -278,8 +277,11 @@ struct CompareView: View {
             }
             var j = i
             while j < rows.count && !gorunur.contains(j) { j += 1 }
-            let id = foldID
-            foldID += 1
+            // Kimlik, katlanan araligin BASLANGIC satir indeksinden turetilir
+            // (hesaplamadaki siradan degil). Boylece diff yeniden hesaplandiginda
+            // ayni icerige (ayni baslangic satirina) sahip bir bosluk hep ayni
+            // kimligi alir; expandedFolds bu kimlikle tutarli kalir.
+            let id = i
             // Kisa bosluklari katlamak fayda saglamaz.
             if j - i <= 2 || expandedFolds.contains(id) {
                 for k in i..<j { items.append(.row(index: k, id: k)) }
