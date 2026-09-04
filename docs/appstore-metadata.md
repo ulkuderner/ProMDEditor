@@ -176,8 +176,8 @@ parsing.
 | Kategori (birincil) | Productivity |
 | Kategori (ikincil) | Developer Tools |
 | Telif hakkı | 2026 Çağlar Ülküderner |
-| Destek URL'si | https://github.com/ulkuderner/MarkPad |
-| Pazarlama URL'si | https://github.com/ulkuderner/MarkPad |
+| Destek URL'si | https://github.com/ulkuderner/ProMDEditor |
+| Pazarlama URL'si | https://github.com/ulkuderner/ProMDEditor |
 | Fiyat | Free |
 | Yaş sınırı | 4+ (anket: tüm sorulara "None") |
 | App Privacy | Data Not Collected |
