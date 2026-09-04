@@ -28,10 +28,36 @@ final class CompareController: ObservableObject {
     private static let bookmarkKey = "compareBookmark"
     /// 10 MB ustu dosyalarda kullaniciya onay sorulur.
     private static let largeFileBytes = 10 * 1024 * 1024
+    /// Testlerde gercek NSAlert esigini beklemeden tetiklemek icin;
+    /// nil ise `largeFileBytes` kullanilir.
+    var largeFileByteThresholdOverride: Int?
+    private var largeFileByteThreshold: Int { largeFileByteThresholdOverride ?? Self.largeFileBytes }
+
+    /// Buyuk dosya onayini sorar. Varsayilan gercek bir NSAlert gosterir;
+    /// testler bunu gercek UI acmadan taklit etmek icin degistirebilir.
+    var confirmLargeFile: (Int) -> Bool = { size in
+        let a = NSAlert()
+        a.messageText = "Büyük dosya"
+        a.informativeText = "Bu dosya \(size / 1024 / 1024) MB. Karşılaştırma yavaş olabilir. Devam edilsin mi?"
+        a.addButton(withTitle: "Devam")
+        a.addButton(withTitle: "Vazgeç")
+        return a.runModal() == .alertFirstButtonReturn
+    }
 
     var canUndo: Bool { !pushUndoStack.isEmpty }
 
     var otherName: String { otherURL?.lastPathComponent ?? "" }
+
+    /// `deinit` ana aktorde calismaz; bu yuzden birakilacak URL'yi
+    /// aktor-bagimsiz bir kutuda tutuyoruz.
+    private final class AccessBox: @unchecked Sendable {
+        var url: URL?
+    }
+    private let accessBox = AccessBox()
+
+    deinit {
+        accessBox.url?.stopAccessingSecurityScopedResource()
+    }
 
     // MARK: - Dosya secme ve okuma
 
@@ -44,32 +70,50 @@ final class CompareController: ObservableObject {
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         do {
-            try load(url: url)
-            storeBookmark(url)
+            if try load(url: url) {
+                storeBookmark(url)
+            }
+            // Kullanici buyuk dosya uyarisinda vazgectiyse `load` false doner;
+            // boyle bir dosya acilmadigi icin bookmark'a da yazilmamali.
         } catch {
             alertMessage = "Dosya açılamadı: \(error.localizedDescription)"
         }
     }
 
-    func load(url: URL) throws {
-        let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
-        if let size = attrs[.size] as? Int, size > Self.largeFileBytes {
-            let a = NSAlert()
-            a.messageText = "Büyük dosya"
-            a.informativeText = "Bu dosya \(size / 1024 / 1024) MB. Karşılaştırma yavaş olabilir. Devam edilsin mi?"
-            a.addButton(withTitle: "Devam")
-            a.addButton(withTitle: "Vazgeç")
-            guard a.runModal() == .alertFirstButtonReturn else { return }
+    /// Dosyayi yukler. Kullanici buyuk-dosya uyarisinda vazgecerse `false`
+    /// doner (hata degildir); basariyla yuklenirse `true` doner.
+    @discardableResult
+    func load(url: URL) throws -> Bool {
+        // Erisimi ONCE aciyoruz: `restoreBookmark()`'in cozdugu security-scoped
+        // URL'lerde nitelikler erisim acilmadan okunamaz (bkz. Bulgu 3).
+        _ = url.startAccessingSecurityScopedResource()
+        var erisimDevredildi = false
+        defer {
+            // Basariyla yuklendiyse erisim asagida otherURL/accessBox'a
+            // devredilir; her diger cikis yolunda (hata veya vazgecme)
+            // burada acilan erisimi biz birakiriz.
+            if !erisimDevredildi {
+                url.stopAccessingSecurityScopedResource()
+            }
         }
 
-        releaseCurrentAccess()
-        _ = url.startAccessingSecurityScopedResource()
+        let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
 
-        otherText = try Self.readText(at: url)
+        if let size = attrs[.size] as? Int, size > largeFileByteThreshold {
+            guard confirmLargeFile(size) else { return false }
+        }
+
+        let metin = try Self.readText(at: url)
+
+        releaseCurrentAccess()
+        otherText = metin
         otherURL = url
+        accessBox.url = url
+        erisimDevredildi = true
         lastKnownModification = attrs[.modificationDate] as? Date
         otherIsDirty = false
         pushUndoStack.removeAll()
+        return true
     }
 
     /// `MarkdownDocument` ile ayni kodlama geri dususu.
@@ -82,6 +126,7 @@ final class CompareController: ObservableObject {
 
     private func releaseCurrentAccess() {
         otherURL?.stopAccessingSecurityScopedResource()
+        accessBox.url = nil
     }
 
     // MARK: - Diff hesabi

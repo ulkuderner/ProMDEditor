@@ -103,4 +103,56 @@ final class CompareControllerTests: XCTestCase {
 
         XCTAssertTrue(c.otherChangedOnDisk())
     }
+
+    // MARK: - Bulgu 1: hata yolunda otherURL eski degerinde kalmali
+
+    func testHataYolundaOtherURLEskiDegerindeKalir() throws {
+        let ilkURL = try yaz("h1.md", "ilk icerik\n")
+        let c = CompareController()
+        try c.load(url: ilkURL)
+        XCTAssertEqual(c.otherURL, ilkURL)
+        XCTAssertEqual(c.otherText, "ilk icerik\n")
+
+        // Var olmayan bir dosya: attributesOfItem/readText hata firlatir.
+        let yokURL = tempDir.appendingPathComponent("olmayan.md")
+        XCTAssertThrowsError(try c.load(url: yokURL))
+
+        XCTAssertEqual(c.otherURL, ilkURL,
+                        "basarisiz yukleme otherURL'i degistirmemeli")
+        XCTAssertEqual(c.otherText, "ilk icerik\n",
+                        "basarisiz yukleme otherText'i degistirmemeli")
+    }
+
+    // MARK: - Bulgu 2: buyuk dosya uyarisinda vazgecilirse yukleme gerceklesmemeli
+
+    func testBuyukDosyaVazgecilirseYuklenmezVeMevcutDurumKorunur() throws {
+        let url = try yaz("buyuk.md", "0123456789ABCDEF\n")
+        let c = CompareController()
+        // Gercek NSAlert acmadan "Vazgec" senaryosunu taklit ediyoruz.
+        c.largeFileByteThresholdOverride = 5
+        c.confirmLargeFile = { _ in false }
+
+        let yuklendi = try c.load(url: url)
+
+        XCTAssertFalse(yuklendi, "vazgecilen buyuk dosya yuklenmis sayilmamali")
+        XCTAssertNil(c.otherURL, "vazgecilen yukleme otherURL atamamali")
+        XCTAssertEqual(c.otherText, "",
+                        "vazgecilen yukleme otherText'e dokunmamali")
+        // `chooseFile()` bookmark'i yalnizca `load` true donduysa kaydeder;
+        // burada dogrulanan `false` sozlesmesi bunu garanti eder. NSOpenPanel
+        // testte tetiklenemedigi icin chooseFile'in kendisi bu testte
+        // cagrilmiyor.
+    }
+
+    func testBuyukDosyaOnaylanirsaYuklenir() throws {
+        let url = try yaz("buyuk2.md", "0123456789ABCDEF\n")
+        let c = CompareController()
+        c.largeFileByteThresholdOverride = 5
+        c.confirmLargeFile = { _ in true }
+
+        let yuklendi = try c.load(url: url)
+
+        XCTAssertTrue(yuklendi)
+        XCTAssertEqual(c.otherURL, url)
+    }
 }
