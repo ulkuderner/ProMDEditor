@@ -159,7 +159,7 @@ struct ContentView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .help("⌘1 düzenleyici · ⌘2 bölünmüş · ⌘3 önizleme")
+            .help("⌘1 düzenleyici · ⌘2 bölünmüş · ⌘3 önizleme · ⌘4 karşılaştırma")
         }
     }
 

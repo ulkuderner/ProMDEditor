@@ -155,4 +155,41 @@ final class CompareControllerTests: XCTestCase {
         XCTAssertTrue(yuklendi)
         XCTAssertEqual(c.otherURL, url)
     }
+
+    // MARK: - Bulgu M2: Vazgec sonrasi bayat bookmark otomatik yuklenmemeli
+
+    func testVazgecilinceBayatBookmarkOtomatikYuklenmez() throws {
+        let url = try yaz("bookmark1.md", "onceki oturum\n")
+        let onceki = CompareController()
+        try onceki.load(url: url)
+        // `chooseFile()`in basari yolundaki bookmark kaydini gercek panel
+        // acmadan taklit ediyoruz.
+        onceki.storeBookmarkForTesting(url)
+
+        // Yeni bir oturumu (yeni CompareController) ve kullanicinin ⇧⌘D
+        // panelinde bilincli olarak Vazgec dedigini temsil ediyoruz.
+        let c = CompareController()
+        c.declineChoiceForTesting()
+        c.restoreBookmark()
+
+        XCTAssertNil(c.otherURL,
+                      "kullanici Vazgec dedikten sonra bayat bookmark otomatik yuklenmemeli")
+        XCTAssertEqual(c.otherText, "",
+                        "Vazgec sonrasi otherText bos kalmali")
+    }
+
+    func testVazgecmedenRestoreBookmarkNormalDavranisiKorur() throws {
+        let url = try yaz("bookmark2.md", "onceki oturum 2\n")
+        let onceki = CompareController()
+        try onceki.load(url: url)
+        onceki.storeBookmarkForTesting(url)
+
+        // Uygulama ilk acildiginda (kullanici hic Vazgec demeden) normal akis.
+        let c = CompareController()
+        c.restoreBookmark()
+
+        XCTAssertEqual(c.otherURL, url,
+                        "Vazgec denilmediyse restoreBookmark eski davranisini korumali")
+        XCTAssertEqual(c.otherText, "onceki oturum 2\n")
+    }
 }

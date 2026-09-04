@@ -15,6 +15,11 @@ final class CompareController: ObservableObject {
     @Published private(set) var otherIsDirty = false
     @Published var alertMessage: String?
 
+    /// Kullanici ⇧⌘D / "Karşılaştırılacak dosyayı seç…" panelinden bilincli
+    /// olarak Vazgec dediyse true. Bu oturumda `restoreBookmark()`'in bayat
+    /// bir dosyayi otomatik geri yuklemesini engellemek icin kullanilir.
+    private(set) var didDeclineChoice = false
+
     /// Karsi dosyaya yapilan aktarmalarin geri alma yigini.
     /// Acik belgenin ⌘Z yigini ayridir; ikisi karistirilmaz.
     private var pushUndoStack: [String] = []
@@ -67,7 +72,12 @@ final class CompareController: ObservableObject {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.message = "Karşılaştırılacak dosyayı seç"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runModal() == .OK, let url = panel.url else {
+            // Kullanici paneli bilincli olarak kapatti; `restoreBookmark()`
+            // bu oturumda artik otomatik devreye girmesin (bkz. Bulgu M2).
+            didDeclineChoice = true
+            return
+        }
 
         do {
             if try load(url: url) {
@@ -113,6 +123,7 @@ final class CompareController: ObservableObject {
         lastKnownModification = attrs[.modificationDate] as? Date
         otherIsDirty = false
         pushUndoStack.removeAll()
+        didDeclineChoice = false
         return true
     }
 
@@ -221,6 +232,14 @@ final class CompareController: ObservableObject {
     /// Testlerde kaydetme yolunu tetiklemek icin.
     func markDirtyForTesting() { otherIsDirty = true }
 
+    /// Testlerde `chooseFile()`in gercek `NSOpenPanel`ini acmadan
+    /// "Vazgeç" akisini tetiklemek icin (bkz. Bulgu M2).
+    func declineChoiceForTesting() { didDeclineChoice = true }
+
+    /// Testlerde `chooseFile()`in basari yolunda yaptigi bookmark kaydini
+    /// gercek panel acmadan tetiklemek icin (bkz. Bulgu M2).
+    func storeBookmarkForTesting(_ url: URL) { storeBookmark(url) }
+
     // MARK: - Bookmark
 
     private func storeBookmark(_ url: URL) {
@@ -233,6 +252,9 @@ final class CompareController: ObservableObject {
     /// Son karsilastirilan dosyayi geri yukler. Cozulemezse sessizce
     /// bos duruma donulur — kullaniciya hata gosterilmez.
     func restoreBookmark() {
+        // Kullanici bu oturumda paneli bilincli olarak Vazgec ile kapattiysa
+        // bayat bir bookmark'i sessizce yuklemeyiz (bkz. Bulgu M2).
+        guard !didDeclineChoice else { return }
         guard let data = AppSettings.shared.defaults.data(forKey: Self.bookmarkKey) else { return }
         var stale = false
         guard let url = try? URL(resolvingBookmarkData: data, options: .withSecurityScope,
