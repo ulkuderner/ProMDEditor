@@ -20,9 +20,7 @@ settingGroups:
       ENABLE_HARDENED_RUNTIME: YES
       CODE_SIGN_STYLE: Automatic
       SWIFT_EMIT_LOC_STRINGS: YES
-      # Xcode'da "Signing & Capabilities" sekmesinden takimini sec,
-      # ya da asagiya kendi Team ID'ni yaz:
-      # DEVELOPMENT_TEAM: XXXXXXXXXX
+      DEVELOPMENT_TEAM: W4A4C428H6
 
 targets:
   MarkPad:
