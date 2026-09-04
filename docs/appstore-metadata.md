@@ -14,12 +14,12 @@ sayı mevcut uzunluktur.
 ProMDEditor
 ```
 
-**Alt başlık (30)** — 29
+**Alt başlık (30)** — 28
 ```
 Markdown, kaybolan biçim yok
 ```
 
-**Tanıtım metni / Promotional Text (170)** — 145
+**Tanıtım metni / Promotional Text (170)** — 139
 > İnceleme gerektirmeden istediğin zaman değiştirebildiğin tek alan budur.
 > Kampanya, yeni özellik duyurusu için kullan.
 ```
@@ -97,12 +97,12 @@ swift-markdown kitaplığını kullanır.
 
 ## English
 
-**Subtitle (30)** — 29
+**Subtitle (30)** — 28
 ```
 Markdown that stays Markdown
 ```
 
-**Promotional Text (170)** — 150
+**Promotional Text (170)** — 154
 ```
 Open two .md files side by side and move any difference either way in one click. 36 themes, Quick Look previews in Finder. Your file stays plain Markdown.
 ```
