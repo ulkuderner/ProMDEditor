@@ -262,7 +262,7 @@ extension TextDiff {
 
         // Kaba geri dususte satirlari eslestirmek yaniltici olur; atla.
         let paired = truncated ? rows : pairChanges(rows)
-        return DiffResult(rows: paired, hunks: [], truncated: truncated)
+        return DiffResult(rows: paired, hunks: groupHunks(paired), truncated: truncated)
     }
 
     private static func equalRow(left: Int, right: Int, text: String) -> DiffRow {
@@ -369,4 +369,61 @@ extension TextDiff {
         }
         return result
     }
+}
+
+// MARK: - Hunk gruplama
+
+extension TextDiff {
+
+    /// Bitisik farkli satirlari blok haline getirir.
+    /// Aralarinda `context` satirdan az esit satir kalan iki blok birlesir.
+    static func groupHunks(_ rows: [DiffRow], context: Int = 3) -> [DiffHunk] {
+        // Once farkli satirlarin kosularini bul.
+        var runs: [Range<Int>] = []
+        var i = 0
+        while i < rows.count {
+            guard rows[i].kind != .equal else { i += 1; continue }
+            var j = i
+            while j < rows.count && rows[j].kind != .equal { j += 1 }
+            runs.append(i..<j)
+            i = j
+        }
+
+        // Yakin kosulari birlestir.
+        var merged: [Range<Int>] = []
+        for run in runs {
+            if let last = merged.last, run.lowerBound - last.upperBound < context {
+                merged[merged.count - 1] = last.lowerBound..<run.upperBound
+            } else {
+                merged.append(run)
+            }
+        }
+
+        return merged.enumerated().map { index, range in
+            DiffHunk(id: index,
+                     rows: range,
+                     leftLines: sourceRange(rows, range, side: .left),
+                     rightLines: sourceRange(rows, range, side: .right))
+        }
+    }
+
+    /// Bir hunk'in bir taraftaki kaynak satir araligini bulur.
+    /// O tarafta hic satir yoksa (saf ekleme/silme) ekleme noktasinda
+    /// bos bir aralik doner — `apply` bu noktaya yerlestirir.
+    private static func sourceRange(_ rows: [DiffRow], _ range: Range<Int>, side: Side) -> Range<Int> {
+        let indexOf: (DiffRow) -> Int? = { side == .left ? $0.left : $0.right }
+        let inside = rows[range].compactMap(indexOf)
+
+        if let low = inside.min(), let high = inside.max() {
+            return low..<(high + 1)
+        }
+        // Hunk'tan onceki son satir indeksi + 1 = ekleme noktasi.
+        let anchor = (rows[0..<range.lowerBound].compactMap(indexOf).max()).map { $0 + 1 } ?? 0
+        return anchor..<anchor
+    }
+}
+
+/// Karsilastirmanin iki tarafi.
+enum Side {
+    case left, right
 }

@@ -218,4 +218,59 @@ final class TextDiffTests: XCTestCase {
         XCTAssertEqual(r.rows[0].leftSpans.map(\.text).joined(), "merhaba 👋 dünya")
         XCTAssertEqual(r.rows[0].rightSpans.map(\.text).joined(), "merhaba 👋 evren")
     }
+
+    // MARK: - Hunk gruplama
+
+    func testHunkYokAyniDosyada() {
+        XCTAssertTrue(TextDiff.compare(left: "a\nb\n", right: "a\nb\n").hunks.isEmpty)
+    }
+
+    func testTekHunk() {
+        let r = TextDiff.compare(left: "a\nb\nc\n", right: "a\nX\nc\n")
+        XCTAssertEqual(r.hunks.count, 1)
+        XCTAssertEqual(r.hunks[0].leftLines, 1..<2)
+        XCTAssertEqual(r.hunks[0].rightLines, 1..<2)
+    }
+
+    func testYakinFarklarTekHunktaBirlesir() {
+        // Iki fark arasinda 2 esit satir var (< 3) -> birlesmeli.
+        let sol = "a\nX\nc\nd\nY\nf\n"
+        let sag = "a\n1\nc\nd\n2\nf\n"
+        XCTAssertEqual(TextDiff.compare(left: sol, right: sag).hunks.count, 1)
+    }
+
+    func testUzakFarklarAyriHunk() {
+        // Iki fark arasinda 5 esit satir var (>= 3) -> ayrilmali.
+        let sol = "a\nX\nc\nd\ne\nf\ng\nY\ni\n"
+        let sag = "a\n1\nc\nd\ne\nf\ng\n2\ni\n"
+        XCTAssertEqual(TextDiff.compare(left: sol, right: sag).hunks.count, 2)
+    }
+
+    func testSafEklemeHunkuBosSolAralik() {
+        let r = TextDiff.compare(left: "a\nc\n", right: "a\nb\nc\n")
+        XCTAssertEqual(r.hunks.count, 1)
+        XCTAssertTrue(r.hunks[0].leftLines.isEmpty)
+        XCTAssertEqual(r.hunks[0].leftLines.lowerBound, 1)   // "a"dan sonra
+        XCTAssertEqual(r.hunks[0].rightLines, 1..<2)
+    }
+
+    func testSafSilmeHunkuBosSagAralik() {
+        let r = TextDiff.compare(left: "a\nb\nc\n", right: "a\nc\n")
+        XCTAssertEqual(r.hunks.count, 1)
+        XCTAssertEqual(r.hunks[0].leftLines, 1..<2)
+        XCTAssertTrue(r.hunks[0].rightLines.isEmpty)
+        XCTAssertEqual(r.hunks[0].rightLines.lowerBound, 1)
+    }
+
+    func testBastakiEklemeHunkuSifirdanBaslar() {
+        let r = TextDiff.compare(left: "b\n", right: "a\nb\n")
+        XCTAssertEqual(r.hunks[0].leftLines.lowerBound, 0)
+        XCTAssertTrue(r.hunks[0].leftLines.isEmpty)
+    }
+
+    func testHunkIdleriSirali() {
+        let sol = "a\nX\nc\nd\ne\nf\ng\nY\ni\n"
+        let sag = "a\n1\nc\nd\ne\nf\ng\n2\ni\n"
+        XCTAssertEqual(TextDiff.compare(left: sol, right: sag).hunks.map(\.id), [0, 1])
+    }
 }
