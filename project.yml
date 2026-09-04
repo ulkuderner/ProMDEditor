@@ -71,12 +71,30 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Sources/QuickLook/QuickLook.entitlements
         GENERATE_INFOPLIST_FILE: NO
 
+  MarkPadTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/MarkPadTests
+    dependencies:
+      - target: MarkPad
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.Tests
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   MarkPad:
     build:
       targets:
         MarkPad: all
+        MarkPadTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - MarkPadTests
     archive:
       config: Release
