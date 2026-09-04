@@ -13,6 +13,14 @@ Dosya her zaman **düz `.md`** olarak saklanır — WYSIWYG dönüşüm kaybı y
 - ⌘B / ⌘I / ⌘K / ⌘E ve tüm biçim menüsü — seçime uygulanır, ikinci basışta kaldırır (toggle).
 - Return ile liste/görev listesi otomatik devam eder, boş maddede listeyi bitirir.
 - Bölünmüş görünüm, kaydırma senkronizasyonu (⌘1 / ⌘2 / ⌘3).
+- Dosya karşılaştırma modu (⌘4): açık belgeyi başka bir `.md`/`.txt` dosyasıyla
+  yan yana karşılaştırır (⇧⌘D ile karşılaştırılacak dosyayı seç). Satır satır
+  hizalanmış görünüm, kelime bazlı vurgulu farklar, değişmeyen uzun bölümler
+  katlanır. Her fark bloğu çift yönlü aktarılabilir: `←` karşı dosyadaki
+  bölümü açık belgeye alır, `→` bölümü karşı dosyaya yazar (bellekte kalır,
+  diske yazmak için ayrı "Karşı dosyayı kaydet" adımı gerekir). Karşı dosya
+  açık belgeden bağımsız kaydedilir; MarkPad dışında değiştiyse üzerine
+  yazmadan önce onay ister.
 - GFM: tablolar, görev listeleri, üstü çizili, fenced code.
 - **36 tema** — İstanbul Day/Night (varsayılan), GitHub, Ayu, Night Owl, Kanagawa,
   Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula, Monokai, Nord,
@@ -89,6 +97,8 @@ Sources/
     MarkdownHTMLRenderer.swift  Markdown -> HTML (MarkupVisitor)
     Theme.swift                 temalar + CSS üretimi
     AppSettings.swift           paylaşılan ayarlar
+    TextDiff.swift               satır+kelime bazlı diff motoru
+    DiffPalette.swift            karşılaştırma renkleri (tema başına)
   App/
     MarkPadApp.swift            DocumentGroup, menüler, kısayollar
     MarkdownDocument.swift      .md okuma/yazma
@@ -98,6 +108,8 @@ Sources/
     FormatCommand.swift         ⌘B, liste, tablo vb. metin işlemleri
     PreviewWebView.swift        WKWebView önizleme
     SettingsView.swift          font/tema/düzen ayarları
+    CompareController.swift     karşılaştırma durumu, dosya G/Ç, aktarma
+    CompareView.swift           karşılaştırma görünümü (⌘4)
   QuickLook/
     PreviewViewController.swift QLPreviewingController
 Tools/
@@ -172,3 +184,4 @@ Mac App Store için notarization gerekmez; o yalnızca Developer ID dağıtımı
 ## Lisans
 
 MIT.
+> 

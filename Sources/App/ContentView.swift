@@ -9,8 +9,10 @@ struct ContentView: View {
 
     @EnvironmentObject private var settings: AppSettings
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.controlActiveState) private var controlActiveState
 
     @StateObject private var controller = EditorController()
+    @StateObject private var compare = CompareController()
     @State private var mode: ViewMode = .split
     @State private var renderedHTML: String = ""
     @State private var editorScroll: Double = 0
@@ -23,6 +25,12 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             content
+                .dropDestination(for: URL.self) { urls, _ in
+                    // Karsilastirma modunda birakma, sag paneldeki hedefe
+                    // aittir (karsi dosyayi secer). Ayni anda iki anlami
+                    // olmasin diye burada kapali.
+                    mode == .compare ? false : openDroppedDocuments(urls)
+                }
             Divider()
             statusBar
         }
@@ -43,6 +51,11 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .setMode)) { note in
             if let m = note.object as? ViewMode { mode = m }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .markPadChooseCompareFile)) { _ in
+            guard controlActiveState == .key else { return }
+            compare.chooseFile()
+            compare.recompute(against: text)
+        }
     }
 
     // MARK: - Govde
@@ -59,6 +72,9 @@ struct ContentView: View {
                 editor.frame(minWidth: 280)
                 preview.frame(minWidth: 280)
             }
+        case .compare:
+            CompareView(documentText: $text, controller: compare,
+                        theme: theme, settings: settings)
         }
     }
 
@@ -80,9 +96,14 @@ struct ContentView: View {
 
     private var statusBar: some View {
         HStack(spacing: 14) {
-            Text("\(wordCount) kelime")
-            Text("\(text.count) karakter")
-            Text("\(text.components(separatedBy: .newlines).count) satır")
+            if mode == .compare {
+                Text("\(compare.result.hunks.count) fark bloğu")
+                if compare.otherIsDirty { Text("karşı dosya kaydedilmedi").foregroundStyle(.orange) }
+            } else {
+                Text("\(wordCount) kelime")
+                Text("\(text.count) karakter")
+                Text("\(text.components(separatedBy: .newlines).count) satır")
+            }
             Spacer()
             Text("~\(max(1, wordCount / 200)) dk okuma")
         }
@@ -138,13 +159,22 @@ struct ContentView: View {
                 Label("Dışa Aktar", systemImage: "square.and.arrow.up")
             }
 
+            Button {
+                mode = .compare
+                compare.chooseFile()
+                compare.recompute(against: text)
+            } label: {
+                Label("Karşılaştır", systemImage: "arrow.left.arrow.right.square")
+            }
+            .help("Bu belgeyi başka bir dosyayla karşılaştır (⇧⌘D)")
+
             Picker("Görünüm", selection: $mode) {
                 ForEach(ViewMode.allCases) { m in
                     Image(systemName: m.symbol).tag(m)
                 }
             }
             .pickerStyle(.segmented)
-            .help("⌘1 düzenleyici · ⌘2 bölünmüş · ⌘3 önizleme")
+            .help("⌘1 düzenleyici · ⌘2 bölünmüş · ⌘3 önizleme · ⌘4 karşılaştırma")
         }
     }
 
@@ -173,6 +203,23 @@ struct ContentView: View {
             Label("Tema", systemImage: "paintpalette")
         }
         .help("Önizleme teması: \(theme.name)")
+    }
+
+    // MARK: - Surukle birak
+
+    /// Pencereye birakilan metin dosyalarini yeni belge olarak acar.
+    ///
+    /// Birakma sandbox'in kullanici hareketi saydigi yollardan biridir, bu
+    /// yuzden `NSDocumentController` dosyayi ek entitlement olmadan okuyabilir.
+    /// Ikili dosyalar sessizce elenir; hicbiri kabul edilmezse false doneriz
+    /// ve surukleme kaynagina "kabul edilmedi" geri bildirimi gider.
+    private func openDroppedDocuments(_ urls: [URL]) -> Bool {
+        let acceptable = urls.filter(CompareController.isComparableTextFile)
+        guard !acceptable.isEmpty else { return false }
+        for url in acceptable {
+            NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, _ in }
+        }
+        return true
     }
 
     // MARK: - Isleme

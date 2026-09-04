@@ -4,6 +4,7 @@ import AppKit
 @main
 struct MarkPadApp: App {
 
+    @NSApplicationDelegateAdaptor(MarkPadAppDelegate.self) private var appDelegate
     @StateObject private var settings = AppSettings.shared
 
     var body: some Scene {
@@ -21,6 +22,29 @@ struct MarkPadApp: App {
                 .environmentObject(settings)
                 .frame(width: 520, height: 520)
         }
+    }
+}
+
+/// Uygulama dosya acmadan baslatildiginda bos bir belge acar.
+final class MarkPadAppDelegate: NSObject, NSApplicationDelegate {
+
+    /// macOS 12'den beri belge tabanli uygulamalar acilista dosya secme
+    /// panelini gosteriyor. Bu davranisi yoneten anahtar bir **kullanici
+    /// varsayilani**dir, Info.plist anahtari degil — `NSUserDefaults`
+    /// Info.plist'i okumadigi icin oraya yazmak hicbir sey yapmaz.
+    ///
+    /// Kayit alanina (registration domain) yaziyoruz: bu en dusuk oncelikli
+    /// katman, yani kullanici sistem ayarindan paneli acikca istediyse
+    /// onun tercihi gecerli kalir.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        UserDefaults.standard.register(defaults: [
+            "NSShowAppCentricOpenPanelInsteadOfUntitledFile": false
+        ])
+    }
+
+    /// Panel gosterilmediginde bunun yerine adsiz bir belge acilsin.
+    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
+        true
     }
 }
 
@@ -61,6 +85,16 @@ struct MarkPadCommands: Commands {
                 .keyboardShortcut("2", modifiers: [.command])
             Button("Yalnızca Önizleme") { post(.setMode, mode: .preview) }
                 .keyboardShortcut("3", modifiers: [.command])
+            Button("Karşılaştır") { post(.setMode, mode: .compare) }
+                .keyboardShortcut("4", modifiers: [.command])
+        }
+
+        CommandGroup(after: .newItem) {
+            Button("Dosya ile Karşılaştır…") {
+                NotificationCenter.default.post(name: .setMode, object: ViewMode.compare)
+                NotificationCenter.default.post(name: .markPadChooseCompareFile, object: nil)
+            }
+            .keyboardShortcut("d", modifiers: [.command, .shift])
         }
     }
 
@@ -80,6 +114,7 @@ struct MarkPadCommands: Commands {
 extension Notification.Name {
     static let markPadFormat = Notification.Name("markPadFormat")
     static let setMode = Notification.Name("markPadSetMode")
+    static let markPadChooseCompareFile = Notification.Name("markPadChooseCompareFile")
 }
 
 /// Standart "Hakkında" panelini yazar bilgisiyle gosterir.

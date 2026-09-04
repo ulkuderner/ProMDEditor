@@ -9,13 +9,14 @@ enum FormatCommand: Equatable {
 }
 
 enum ViewMode: String, CaseIterable, Identifiable {
-    case editor, split, preview
+    case editor, split, preview, compare
     var id: String { rawValue }
     var label: String {
         switch self {
         case .editor: return "Düzenleyici"
         case .split: return "Bölünmüş"
         case .preview: return "Önizleme"
+        case .compare: return "Karşılaştır"
         }
     }
     var symbol: String {
@@ -23,6 +24,7 @@ enum ViewMode: String, CaseIterable, Identifiable {
         case .editor: return "pencil"
         case .split: return "rectangle.split.2x1"
         case .preview: return "doc.richtext"
+        case .compare: return "arrow.left.arrow.right"
         }
     }
 }

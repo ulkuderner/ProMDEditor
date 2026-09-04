@@ -20,9 +20,7 @@ settingGroups:
       ENABLE_HARDENED_RUNTIME: YES
       CODE_SIGN_STYLE: Automatic
       SWIFT_EMIT_LOC_STRINGS: YES
-      # Xcode'da "Signing & Capabilities" sekmesinden takimini sec,
-      # ya da asagiya kendi Team ID'ni yaz:
-      # DEVELOPMENT_TEAM: XXXXXXXXXX
+      DEVELOPMENT_TEAM: W4A4C428H6
 
 targets:
   MarkPad:
@@ -71,12 +69,30 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Sources/QuickLook/QuickLook.entitlements
         GENERATE_INFOPLIST_FILE: NO
 
+  MarkPadTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/MarkPadTests
+    dependencies:
+      - target: MarkPad
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.Tests
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   MarkPad:
     build:
       targets:
         MarkPad: all
+        MarkPadTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - MarkPadTests
     archive:
       config: Release
