@@ -39,6 +39,11 @@ notes or documentation as plain Markdown files. General audience, rated 4+.
 
 **3. Setting up and accessing the main features**
 
+Please note a correction to our earlier submission: the App Review Information
+previously indicated that a sign-in is required. That was entered in error.
+ProMDEditor has **no sign-in of any kind** — no username, no password, no
+account, no demo credentials. We have cleared that field accordingly.
+
 No login, account, credentials, subscription or configuration is required. The
 app works offline immediately after installation.
 
