@@ -1,0 +1,36 @@
+CORRECTION: our earlier App Review Information said a sign-in is required. That was entered in error. ProMDEditor has no sign-in of any kind - no username, password, account or demo credentials. That field has been cleared.
+
+1. SCREEN RECORDING
+Attached, recorded on a physical Mac (Apple silicon, macOS 26). It begins with launching the app and shows the typical flow: opening a .md file, live formatting while typing, split editor/preview, view modes, theme switching, side-by-side file comparison, and the Quick Look preview in Finder. The app has no registration, login, account deletion, shared user-generated content, or paid features, so none of those flows exist to record.
+
+2. PURPOSE AND AUDIENCE
+ProMDEditor is a Markdown editor, viewer and Quick Look extension for macOS.
+
+Problem it solves: most Markdown editors convert text into an internal representation and write it back in their own style, which rewrites files that are normally kept in version control. ProMDEditor never converts. Documents are read and written as plain UTF-8 Markdown, byte for byte, so diffs stay clean and the file opens identically in any other tool.
+
+Value on top of that: formatting is shown live in the editor while the Markdown markers stay visible; two Markdown files can be compared side by side with word-level differences moved between them; and a Quick Look extension renders .md files in Finder.
+
+Audience: software developers, technical writers, and anyone keeping notes or documentation as plain Markdown. General audience, rated 4+.
+
+3. SETUP AND ACCESS
+No login, account, credentials, subscription or configuration. The app works offline immediately after installation.
+
+- Launch the app, then File > Open, or drag any .md or .txt file onto it. A sample file is attached; any Markdown file works.
+- Typing shows live formatting. Cmd-B bold, Cmd-I italic, Cmd-K link, Cmd-E inline code. The Format menu lists all commands.
+- Cmd-1 editor only, Cmd-2 split, Cmd-3 preview only.
+- Cmd-4 enters file comparison; Shift-Cmd-D chooses the second file. Differences are highlighted; arrow buttons on each block move it between the files. Writing out is explicit, via "Save other file".
+- The palette button in the toolbar switches themes.
+- Quick Look: launch the app once to register the extension, then select a .md file in Finder and press the space bar. If Finder shows raw text, use Cmd-I > Open with > ProMDEditor > Change All; macOS picks the preview provider from the default app.
+
+4. EXTERNAL SERVICES
+None. No back end, analytics, advertising, authentication, payment processing, or AI service. The app does not contact any server operated by us or a third party.
+
+The only third-party code is Apple's open-source swift-markdown library (Apache-2.0), compiled in and used locally. Rendering happens in a local WKWebView from HTML generated on the device.
+
+For completeness, since it appears in the entitlements: the app declares com.apple.security.network.client because a sandboxed WKWebView cannot start its content process without it, even when it only displays locally generated HTML. The app issues no network requests itself. Traffic occurs only if a user's own document references a remote image by URL, which the web view then loads as the document asked.
+
+5. REGIONAL DIFFERENCES
+None. Behaviour is identical in every region: no region-gated content, no regional pricing, no network-served content. The interface is localized into English, Turkish, German, Spanish, French and Italian and follows the system language; every feature is available in every language and region.
+
+6. REGULATED INDUSTRY / PROTECTED MATERIAL
+Neither applies. This is a general-purpose text editor. All application code is our own, published under the MIT license at https://github.com/ulkuderner/ProMDEditor. The only third-party component is Apple's swift-markdown under Apache-2.0, which permits this use.
