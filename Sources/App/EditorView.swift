@@ -87,6 +87,7 @@ struct EditorView: NSViewRepresentable {
 
     private func applyAppearance(_ textView: NSTextView) {
         textView.backgroundColor = theme.nsBackground
+        textView.textColor = theme.nsForeground
         textView.insertionPointColor = theme.nsAccent
         textView.selectedTextAttributes = [.backgroundColor: theme.nsSelection]
         textView.enclosingScrollView?.backgroundColor = theme.nsBackground

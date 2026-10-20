@@ -9,7 +9,6 @@ struct ContentView: View {
     let fileURL: URL?
 
     @EnvironmentObject private var settings: AppSettings
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.controlActiveState) private var controlActiveState
 
     @StateObject private var controller = EditorController()
@@ -22,7 +21,7 @@ struct ContentView: View {
     @StateObject private var printSession = PreviewPrintSession()
 
     private var theme: Theme {
-        settings.activeTheme(dark: colorScheme == .dark)
+        settings.activeTheme()
     }
 
     var body: some View {
@@ -51,7 +50,6 @@ struct ContentView: View {
         .onAppear { render(immediately: true) }
         .onChange(of: text) { _ in render() }
         .onChange(of: settings.themeID) { _ in render(immediately: true) }
-        .onChange(of: settings.darkThemeID) { _ in render(immediately: true) }
         .onChange(of: settings.bodyFontName) { _ in render(immediately: true) }
         .onChange(of: settings.bodyFontSize) { _ in render(immediately: true) }
         .onChange(of: settings.monoFontName) { _ in render(immediately: true) }
@@ -59,7 +57,6 @@ struct ContentView: View {
         .onChange(of: settings.lineHeight) { _ in render(immediately: true) }
         .onChange(of: settings.contentWidth) { _ in render(immediately: true) }
         .onChange(of: settings.justifyText) { _ in render(immediately: true) }
-        .onChange(of: colorScheme) { _ in render(immediately: true) }
         .onReceive(NotificationCenter.default.publisher(for: .setMode)) { note in
             if let m = note.object as? ViewMode { mode = m }
         }
@@ -262,22 +259,22 @@ struct ContentView: View {
 
     // MARK: - Tema secici
 
-    /// Onizleme temasini arac cubugundan degistirir.
-    /// Sistem gorunumu koyuysa koyu tema listesi, degilse acik tema listesi duzenlenir.
+    /// Tum katalog tek listede. Acik ve koyu ayrimi yok; secilen ad
+    /// editörun ve onizlemenin ikisine de uygulanir.
     private var themeMenu: some View {
         Menu {
-            Picker("Light theme", selection: $settings.themeID) {
-                ForEach(Theme.all.filter { !$0.isDark }) { Text($0.name).tag($0.id) }
-            }
-            Picker("Dark theme", selection: $settings.darkThemeID) {
-                ForEach(Theme.all.filter { $0.isDark }) { Text($0.name).tag($0.id) }
+            Picker("Theme", selection: $settings.themeID) {
+                ForEach(Theme.all) { theme in
+                    Text(theme.name).tag(theme.id)
+                }
             }
             Divider()
-            Toggle("Follow system appearance", isOn: $settings.followSystemAppearance)
-            Divider()
-            Text("Active: \(theme.name)")
+            FontPicker(title: "Body font:", selection: $settings.bodyFontName)
+            FontPicker(title: "Heading font:", selection: $settings.headingFontName)
+            FontPicker(title: "Monospace:", selection: $settings.monoFontName, monospacedOnly: true)
+            FontPicker(title: "Editor font:", selection: $settings.editorFontName)
         } label: {
-            Label("Theme", systemImage: "paintpalette")
+            Label(theme.name, systemImage: "paintpalette")
         }
         .help("Preview theme: \(theme.name)")
     }

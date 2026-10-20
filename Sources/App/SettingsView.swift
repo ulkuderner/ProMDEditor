@@ -20,13 +20,11 @@ struct SettingsView: View {
 
     private var appearanceTab: some View {
         Form {
-            Picker("Light theme:", selection: $settings.themeID) {
-                ForEach(Theme.all.filter { !$0.isDark }) { Text($0.name).tag($0.id) }
+            Picker("Theme:", selection: $settings.themeID) {
+                ForEach(Theme.all) { theme in
+                    Text(theme.name).tag(theme.id)
+                }
             }
-            Picker("Dark theme:", selection: $settings.darkThemeID) {
-                ForEach(Theme.all.filter { $0.isDark }) { Text($0.name).tag($0.id) }
-            }
-            Toggle("Follow system appearance", isOn: $settings.followSystemAppearance)
 
             Divider().padding(.vertical, 6)
 

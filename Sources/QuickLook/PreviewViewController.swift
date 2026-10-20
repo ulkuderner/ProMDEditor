@@ -31,8 +31,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController, WKN
                 ?? ""
 
             let settings = AppSettings.shared
-            let isDark = view.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            let theme = settings.activeTheme(dark: isDark)
+            let theme = settings.activeTheme()
 
             let body = MarkdownHTMLRenderer.render(markdown)
             let html = StyleSheet.document(bodyHTML: body, theme: theme,

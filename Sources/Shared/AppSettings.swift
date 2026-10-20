@@ -82,11 +82,10 @@ final class AppSettings: ObservableObject {
         lineHeight = type.lineHeight
     }
 
-    /// Sistem gorunumune gore aktif tema.
-    func activeTheme(dark: Bool? = nil) -> Theme {
-        let isDark = dark ?? (NSApp?.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua)
-        let id = (followSystemAppearance && isDark) ? darkThemeID : themeID
-        return Theme.byID(id)
+    /// Secilen tek tema. Editör ve önizleme ayni kimligi kullanir;
+    /// sistemin acik veya koyu olmasi bunu degistirmez.
+    func activeTheme() -> Theme {
+        Theme.byID(themeID)
     }
 
     func editorFont() -> NSFont {
