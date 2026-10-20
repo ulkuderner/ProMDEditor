@@ -40,14 +40,15 @@ struct SettingsView: View {
         return VStack(alignment: .leading, spacing: 6) {
             Text("Preview").font(.caption).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Heading").font(.system(size: 17, weight: .bold))
-                    .foregroundColor(Color(nsColor: theme.nsForeground))
+                Text("Heading")
+                    .font(.title3.bold())
+                    .foregroundStyle(Color(nsColor: theme.nsForeground))
                 Text("Body text sample — readability and contrast.")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(nsColor: theme.nsForeground))
+                    .font(.body)
+                    .foregroundStyle(Color(nsColor: theme.nsForeground))
                 Text("code_sample()")
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(Color(nsColor: theme.nsAccent))
+                    .font(.callout.monospaced())
+                    .foregroundStyle(Color(nsColor: theme.nsAccent))
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -93,7 +94,9 @@ struct SettingsView: View {
                 shortcut("⌘B", "Bold"); shortcut("⌘I", "Italic")
                 shortcut("⌘E", "Inline code"); shortcut("⌘K", "Link")
                 shortcut("⌃⌘1–6", "Heading level"); shortcut("⇧⌘L", "Bulleted list")
-                shortcut("⌘1/2/3", "Editor / Split / Preview")
+                shortcut("⌘1/2/3/4", "Editor / Split / Preview / Compare")
+                shortcut("⌥⌘C", "Copy as Rich Text")
+                shortcut("⌥⌘H", "Copy as HTML")
             }
         }
         .formStyle(.grouped)
@@ -101,7 +104,7 @@ struct SettingsView: View {
 
     private func shortcut(_ key: String, _ label: LocalizedStringKey) -> some View {
         HStack {
-            Text(key).font(.system(.caption, design: .monospaced))
+            Text(key).font(.caption.monospaced())
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
             Text(label).font(.caption).foregroundStyle(.secondary)

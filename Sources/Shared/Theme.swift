@@ -371,7 +371,10 @@ enum StyleSheet {
     }
 
     /// Tam HTML belgesi uretir.
-    static func document(bodyHTML: String, theme: Theme, settings: AppSettings, includeScrollBridge: Bool) -> String {
+    ///
+    /// `forPrint` yazdirma ve PDF icin arka plan renginin kagida gecmesini ister.
+    static func document(bodyHTML: String, theme: Theme, settings: AppSettings,
+                         includeScrollBridge: Bool, forPrint: Bool = false) -> String {
         let bridge = includeScrollBridge ? """
         <script>
         window.mpScrollTo = function(p) {
@@ -385,13 +388,23 @@ enum StyleSheet {
         </script>
         """ : ""
 
+        let printCSS = forPrint ? """
+        @media print {
+          html, body, #content { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          #content { padding-bottom: 32px; }
+        }
+        """ : ""
+
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+
         return """
         <!DOCTYPE html>
-        <html lang="tr">
+        <html lang="\(lang)">
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>\(css(theme: theme, settings: settings))</style>
+        <style>\(css(theme: theme, settings: settings))
+        \(printCSS)</style>
         </head>
         <body><div id="content">\(bodyHTML)</div>\(bridge)</body>
         </html>

@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import WebKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
 
@@ -17,6 +18,8 @@ struct ContentView: View {
     @State private var renderedHTML: String = ""
     @State private var editorScroll: Double = 0
     @State private var renderTask: Task<Void, Never>?
+    @State private var exportError: String?
+    @StateObject private var printSession = PreviewPrintSession()
 
     private var theme: Theme {
         settings.activeTheme(dark: colorScheme == .dark)
@@ -24,6 +27,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if showsFormatBar { formatBar }
             content
                 .dropDestination(for: URL.self) { urls, _ in
                     // Karsilastirma modunda birakma, sag paneldeki hedefe
@@ -36,6 +40,14 @@ struct ContentView: View {
         }
         .background(Color(nsColor: theme.nsBackground))
         .toolbar { toolbarContent }
+        .alert("Export Failed", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("OK", role: .cancel) { exportError = nil }
+        } message: {
+            Text(exportError ?? "")
+        }
         .onAppear { render(immediately: true) }
         .onChange(of: text) { _ in render() }
         .onChange(of: settings.themeID) { _ in render(immediately: true) }
@@ -56,6 +68,17 @@ struct ContentView: View {
             compare.chooseFile()
             compare.recompute(against: text)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .markPadExport)) { note in
+            guard controlActiveState == .key else { return }
+            guard let command = note.object as? DocumentExportCommand else { return }
+            performExport(command)
+        }
+    }
+
+    /// Bicim cubugu yalnizca editor gorunurken durur. Onizleme ve
+    /// karsilastirmada kaynak secimi olmadigi icin yer kaplamaz.
+    private var showsFormatBar: Bool {
+        mode == .editor || mode == .split
     }
 
     // MARK: - Govde
@@ -95,22 +118,28 @@ struct ContentView: View {
     // MARK: - Durum cubugu
 
     private var statusBar: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 8) {
             if mode == .compare {
                 Text("\(compare.result.hunks.count) diff blocks")
-                if compare.otherIsDirty { Text("other file not saved").foregroundStyle(.orange) }
+                if compare.otherIsDirty {
+                    Text("·")
+                    Text("other file not saved")
+                }
             } else {
                 Text("\(wordCount) words")
+                Text("·")
                 Text("\(text.count) characters")
+                Text("·")
                 Text("\(text.components(separatedBy: .newlines).count) lines")
             }
             Spacer()
             Text("~\(max(1, wordCount / 200)) min read")
         }
-        .font(.system(size: 11))
+        .font(.subheadline)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 7)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var wordCount: Int {
@@ -121,43 +150,9 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup {
-            formatButton("bold", "Bold (⌘B)", .bold)
-            formatButton("italic", "Italic (⌘I)", .italic)
-            formatButton("strikethrough", "Strikethrough", .strikethrough)
-            formatButton("chevron.left.forwardslash.chevron.right", "Inline code (⌘E)", .inlineCode)
-
-            Divider()
-
-            Menu {
-                Button("Heading 1") { controller.apply(.heading(1)) }
-                Button("Heading 2") { controller.apply(.heading(2)) }
-                Button("Heading 3") { controller.apply(.heading(3)) }
-                Button("Heading 4") { controller.apply(.heading(4)) }
-                Divider()
-                Button("Body text") { controller.apply(.heading(0)) }
-            } label: {
-                Label("Heading", systemImage: "textformat.size")
-            }
-
-            formatButton("list.bullet", "Bulleted list", .bulletList)
-            formatButton("list.number", "Numbered list", .numberedList)
-            formatButton("checklist", "Task list", .taskList)
-            formatButton("text.quote", "Blockquote", .blockQuote)
-            formatButton("curlybraces", "Code block", .codeBlock)
-            formatButton("link", "Link (⌘K)", .link)
-            formatButton("tablecells", "Table", .table)
-        }
-
         ToolbarItemGroup(placement: .primaryAction) {
             themeMenu
-
-            Menu {
-                Button("Export as HTML…") { exportHTML() }
-                Button("Print Preview / PDF…") { printPreview() }
-            } label: {
-                Label("Export", systemImage: "square.and.arrow.up")
-            }
+            exportMenu
 
             Button {
                 mode = .compare
@@ -178,9 +173,91 @@ struct ContentView: View {
         }
     }
 
+    /// Pencere arac cubugundan ayri, opak bicim seridi. Cam yalnizca
+    /// sistem arac cubugunda kalir; bu serit icerik katmanidir.
+    private var formatBar: some View {
+        HStack(spacing: 2) {
+            formatButton("bold", "Bold (⌘B)", .bold)
+            formatButton("italic", "Italic (⌘I)", .italic)
+            formatButton("strikethrough", "Strikethrough", .strikethrough)
+            formatButton("chevron.left.forwardslash.chevron.right", "Inline code (⌘E)", .inlineCode)
+
+            formatDivider
+
+            Menu {
+                Button("Heading 1") { controller.apply(.heading(1)) }
+                Button("Heading 2") { controller.apply(.heading(2)) }
+                Button("Heading 3") { controller.apply(.heading(3)) }
+                Button("Heading 4") { controller.apply(.heading(4)) }
+                Divider()
+                Button("Body text") { controller.apply(.heading(0)) }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "textformat.size")
+                    Text("Heading")
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .font(.body)
+                .padding(.horizontal, 6)
+                .frame(minHeight: 28)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+
+            formatDivider
+
+            formatButton("list.bullet", "Bulleted list", .bulletList)
+            formatButton("list.number", "Numbered list", .numberedList)
+            formatButton("checklist", "Task list", .taskList)
+            formatButton("text.quote", "Blockquote", .blockQuote)
+            formatButton("curlybraces", "Code block", .codeBlock)
+
+            formatDivider
+
+            formatButton("link", "Link (⌘K)", .link)
+            formatButton("tablecells", "Table", .table)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .bottom) { Divider() }
+    }
+
+    private var formatDivider: some View {
+        Divider()
+            .frame(height: 16)
+            .padding(.horizontal, 6)
+    }
+
     private func formatButton(_ symbol: String, _ help: LocalizedStringKey, _ command: FormatCommand) -> some View {
-        Button { controller.apply(command) } label: { Image(systemName: symbol) }
-            .help(help)
+        Button { controller.apply(command) } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .regular))
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .help(help)
+    }
+
+    private var exportMenu: some View {
+        Menu {
+            Button("Export as HTML…") { performExport(.html) }
+            Button("Export as PDF…") { performExport(.pdf) }
+            Button("Export as Word…") { performExport(.docx) }
+            Button("Export as Rich Text…") { performExport(.rtf) }
+            Divider()
+            Button("Copy as Rich Text") { performExport(.copyRichText) }
+            Button("Copy as HTML") { performExport(.copyHTML) }
+            Divider()
+            Button("Print…") { performExport(.print) }
+        } label: {
+            Label("Export", systemImage: "square.and.arrow.up")
+        }
     }
 
     // MARK: - Tema secici
@@ -246,30 +323,82 @@ struct ContentView: View {
 
     // MARK: - Disa aktarma
 
-    private func exportHTML() {
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.html]
-        panel.nameFieldStringValue = (fileURL?.deletingPathExtension().lastPathComponent ?? String(localized: "document")) + ".html"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        try? renderedHTML.write(to: url, atomically: true, encoding: .utf8)
+    private var exportBaseName: String {
+        fileURL?.deletingPathExtension().lastPathComponent ?? String(localized: "document")
     }
 
-    private func printPreview() {
-        // WKWebView yazdirma paneli, PDF olarak kaydet secenegini de icerir.
-        guard let window = NSApp.keyWindow,
-              let webView = findWebView(in: window.contentView) else { return }
-        let info = NSPrintInfo.shared
-        info.topMargin = 36; info.bottomMargin = 36
-        info.leftMargin = 36; info.rightMargin = 36
-        webView.printOperation(with: info).run()
+    /// RTF ve Word beyaz sayfada acilir. Koyu temanin acik yazisi orada kaybolur,
+    /// bu yuzden kullanicinin acik temasini kullaniriz.
+    private var readableTheme: Theme {
+        if !theme.isDark { return theme }
+        let light = Theme.byID(settings.themeID)
+        return light.isDark ? .istanbulDay : light
     }
 
-    private func findWebView(in view: NSView?) -> WKWebView? {
-        guard let view else { return nil }
-        if let web = view as? WKWebView { return web }
-        for sub in view.subviews {
-            if let found = findWebView(in: sub) { return found }
+    private func exportHTMLString(forPrint: Bool) -> String {
+        let body = MarkdownHTMLRenderer.render(text)
+        return StyleSheet.document(bodyHTML: body, theme: theme, settings: settings,
+                                   includeScrollBridge: false, forPrint: forPrint)
+    }
+
+    private func richText() -> NSAttributedString {
+        MarkdownRichText.render(text, settings: settings, theme: readableTheme,
+                                baseURL: fileURL?.deletingLastPathComponent())
+    }
+
+    private func performExport(_ command: DocumentExportCommand) {
+        switch command {
+        case .html:
+            save(type: .html, extension: "html") { url in
+                try exportHTMLString(forPrint: false).write(to: url, atomically: true, encoding: .utf8)
+            }
+        case .rtf:
+            save(type: .rtf, extension: "rtf") { url in
+                try MarkdownRichText.rtfData(richText()).write(to: url, options: .atomic)
+            }
+        case .docx:
+            save(type: DocumentFileTypes.docx, extension: "docx") { url in
+                try MarkdownRichText.docxData(richText()).write(to: url, options: .atomic)
+            }
+        case .pdf:
+            guard let url = chooseURL(type: .pdf, extension: "pdf") else { return }
+            let html = exportHTMLString(forPrint: true)
+            let base = fileURL?.deletingLastPathComponent()
+            Task { @MainActor in
+                do {
+                    try await PreviewPDFWriter().write(html: html, baseURL: base, to: url)
+                } catch {
+                    exportError = error.localizedDescription
+                }
+            }
+        case .copyRichText:
+            do { try DocumentClipboard.copyRichText(richText()) }
+            catch { exportError = error.localizedDescription }
+        case .copyHTML:
+            DocumentClipboard.copyHTML(exportHTMLString(forPrint: false))
+        case .print:
+            printSession.print(html: exportHTMLString(forPrint: true),
+                               baseURL: fileURL?.deletingLastPathComponent())
         }
-        return nil
+    }
+
+    private func chooseURL(type: UTType, extension ext: String) -> URL? {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [type]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = exportBaseName + "." + ext
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
+    }
+
+    private func save(type: UTType, extension ext: String, writer: (URL) throws -> Void) {
+        guard let url = chooseURL(type: type, extension: ext) else { return }
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            try writer(url)
+        } catch {
+            exportError = error.localizedDescription
+        }
     }
 }

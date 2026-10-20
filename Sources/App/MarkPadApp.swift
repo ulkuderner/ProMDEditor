@@ -20,7 +20,7 @@ struct MarkPadApp: App {
         Settings {
             SettingsView()
                 .environmentObject(settings)
-                .frame(width: 520, height: 520)
+                .frame(width: 520, height: 560)
         }
     }
 }
@@ -96,6 +96,26 @@ struct MarkPadCommands: Commands {
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
         }
+
+        CommandGroup(after: .pasteboard) {
+            Button("Copy as Rich Text") { postExport(.copyRichText) }
+                .keyboardShortcut("c", modifiers: [.command, .option])
+            Button("Copy as HTML") { postExport(.copyHTML) }
+                .keyboardShortcut("h", modifiers: [.command, .option])
+        }
+
+        CommandGroup(after: .importExport) {
+            Button("Export as HTML…") { postExport(.html) }
+            Button("Export as PDF…") { postExport(.pdf) }
+            Button("Export as Word…") { postExport(.docx) }
+            Button("Export as Rich Text…") { postExport(.rtf) }
+            Divider()
+            Button("Print…") { postExport(.print) }
+        }
+    }
+
+    private func postExport(_ command: DocumentExportCommand) {
+        NotificationCenter.default.post(name: .markPadExport, object: command)
     }
 
     private func button(_ title: LocalizedStringKey, _ command: FormatCommand,

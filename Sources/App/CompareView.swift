@@ -24,7 +24,8 @@ struct CompareView: View {
     /// durumdaki onizlemenin ayni hizada kalmasini garanti eder.
     private let cellWidth: CGFloat = 460
     /// Satir isareti (+/-/~) ve aktarma dugmelerinin oldugu orta oluk.
-    private let gutterWidth: CGFloat = 62
+    /// Iki dugme varsayilan 28 pt hedefe sigsin diye genis tutulur.
+    private let gutterWidth: CGFloat = 80
 
     private var palette: DiffPalette { DiffPalette.forTheme(theme) }
     private var font: Font { Font(settings.editorFont() as CTFont) }
@@ -64,7 +65,8 @@ struct CompareView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Text("This document").font(.system(size: 11, weight: .semibold))
+            Text("This document")
+                .font(.subheadline.weight(.semibold))
             Spacer()
 
             if controller.otherURL != nil {
@@ -73,7 +75,10 @@ struct CompareView: View {
                         .help("Undoes the last block pushed to the other file (⌘Z applies to this document)")
                 }
                 if controller.otherIsDirty {
-                    Text("●").foregroundStyle(.orange)
+                    Label("other file not saved", systemImage: "circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
+                        .labelStyle(.titleAndIcon)
                         .help("The other file has unsaved changes")
                     // Kisayol yok: ⇧⌘S `DocumentGroup`'un "Kopyasini Olustur"
                     // komutuna ait; ayni kombinasyonu paylasmak iki komutun
@@ -81,12 +86,15 @@ struct CompareView: View {
                     // (bkz. Bulgu I1). Spec §6 bu düğme icin kisayol istemiyor.
                     Button("Save other file") { controller.saveOther() }
                 }
-                Text(controller.otherName).font(.system(size: 11, weight: .semibold))
+                Text(controller.otherName)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
                 Button("Change…") { chooseAndRecompute() }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     /// Karsi dosya secilmeden onceki duzen: solda acik belgenin satirlari,
@@ -123,12 +131,14 @@ struct CompareView: View {
     private var dropZone: some View {
         VStack(spacing: 10) {
             Image(systemName: isDropTargeted ? "arrow.down.doc.fill" : "arrow.down.doc")
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundStyle(isDropTargeted ? Color.accentColor : Color.secondary)
+                .symbolRenderingMode(.hierarchical)
             Text("Drag the file to compare here")
+                .font(.body)
                 .foregroundStyle(.secondary)
             Text("or")
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .foregroundStyle(.tertiary)
             Button("Choose file…") { chooseAndRecompute() }
         }
@@ -155,7 +165,7 @@ struct CompareView: View {
 
     private var truncationWarning: some View {
         Text("The files differ too much — showing a coarse comparison.")
-            .font(.system(size: 11))
+            .font(.subheadline)
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity)
             .background(Color.orange.opacity(0.18))
@@ -189,7 +199,7 @@ struct CompareView: View {
             expandedFolds.insert(id)
         } label: {
             Text("⋯ \(range.count) identical lines")
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding(.vertical, 3)
                 .frame(maxWidth: .infinity)
@@ -214,7 +224,7 @@ struct CompareView: View {
                       bg: Color, strong: Color) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Text(number.map { String($0 + 1) } ?? "")
-                .font(.system(size: 10, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(Color(nsColor: palette.gutterFG))
                 .frame(width: 38, alignment: .trailing)
             Text(attributed(spans, strong: strong))
@@ -265,24 +275,32 @@ struct CompareView: View {
 
         return HStack(spacing: 2) {
             Text(symbol(row.kind))
-                .font(.system(size: 10, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(Color(nsColor: palette.gutterFG))
                 .frame(width: 12)
 
             if let hunk, isFirstRow {
                 Button { documentText = controller.apply(hunk: hunk, source: .right,
                                                          documentText: documentText) }
-                    label: { Image(systemName: "arrow.left") }
+                    label: {
+                        Image(systemName: "arrow.left")
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
+                    }
                     .buttonStyle(.borderless)
                     .help("Pull this block into this document")
 
                 Button { _ = controller.apply(hunk: hunk, source: .left,
                                               documentText: documentText) }
-                    label: { Image(systemName: "arrow.right") }
+                    label: {
+                        Image(systemName: "arrow.right")
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
+                    }
                     .buttonStyle(.borderless)
                     .help("Write this block to the other file (saving is a separate step)")
             } else {
-                Spacer().frame(width: 40)
+                Spacer().frame(width: 58)
             }
         }
         .frame(width: gutterWidth)
