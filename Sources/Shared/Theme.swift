@@ -1,5 +1,15 @@
 import AppKit
 
+/// Bir temayla gelen yazı tipi. Seçilince ayarlara yazılır; sonra elle
+/// değiştirilebilir.
+struct ThemeTypography: Hashable {
+    let bodyFontName: String
+    let headingFontName: String
+    let monoFontName: String
+    let editorFontName: String
+    let lineHeight: Double
+}
+
 struct Theme: Identifiable, Hashable {
     let id: String
     let name: String
@@ -14,6 +24,8 @@ struct Theme: Identifiable, Hashable {
     let codeFG: String
     let quoteBar: String
     let selection: String
+    /// Yoksa tema renk değiştirir, yazı tipi ayarına dokunmaz.
+    var typography: ThemeTypography? = nil
 
     static let githubLight = Theme(
         id: "github-light", name: "GitHub Light", isDark: false,
@@ -67,6 +79,33 @@ struct Theme: Identifiable, Hashable {
         bg: "#0F1922", fg: "#EAEFF4", muted: "#9AABB9", accent: "#5AC6DA",
         border: "#233240", codeBG: "#15212C", codeFG: "#EAEFF4",
         quoteBar: "#D9A441", selection: "#1E3E54")
+
+    // MARK: - Çağla
+    // Apple HIG sistem renkleri. Gövde New York (editoryal), başlık SF Pro,
+    // kod SF Mono. Sistem mavisi #0088FF beyazda 3.5:1 kaldığı için bağlantı
+    // rengi artırılmış kontrast mavisi; soluk metin de sistem grisinin
+    // artırılmış kontrast tonu. İkisi de bu projenin 4.6:1 çubuğunu geçer.
+
+    static let caglaTypography = ThemeTypography(
+        bodyFontName: "New York",
+        headingFontName: "-apple-system",
+        monoFontName: "SF Mono",
+        editorFontName: "SF Mono",
+        lineHeight: 1.5)
+
+    static let caglaDay = Theme(
+        id: "cagla-day", name: "Çağla Day", isDark: false,
+        bg: "#FFFFFF", fg: "#000000", muted: "#6C6C70", accent: "#1E6DF2",
+        border: "#D1D1D6", codeBG: "#F2F2F7", codeFG: "#000000",
+        quoteBar: "#8E8E93", selection: "#CCE7FF",
+        typography: caglaTypography)
+
+    static let caglaNight = Theme(
+        id: "cagla-night", name: "Çağla Night", isDark: true,
+        bg: "#000000", fg: "#FFFFFF", muted: "#8E8E93", accent: "#0091FF",
+        border: "#3A3A3C", codeBG: "#1C1C1E", codeFG: "#FFFFFF",
+        quoteBar: "#8E8E93", selection: "#003A66",
+        typography: caglaTypography)
 
     static let solarizedDark = Theme(
         id: "solarized-dark", name: "Solarized Dark", isDark: true,
@@ -242,6 +281,7 @@ struct Theme: Identifiable, Hashable {
 
     static let all: [Theme] = [
         istanbulDay, istanbulNight,
+        caglaDay, caglaNight,
         githubLight, githubDark, githubDimmed,
         atomOneLight, oneDark,
         lightOwl, nightOwl,
@@ -315,7 +355,7 @@ enum StyleSheet {
           font-family: \(head);
           line-height: 1.25; font-weight: 700;
           margin: 1.6em 0 .6em; text-align: left;
-          letter-spacing: -0.011em;
+          letter-spacing: \(theme.typography == nil ? "-0.011em" : "-0.02em");
         }
         h1 { font-size: 2.05em; margin-top: 0; padding-bottom: .3em; border-bottom: 1px solid var(--border); }
         h2 { font-size: 1.55em; padding-bottom: .25em; border-bottom: 1px solid var(--border); }

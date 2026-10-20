@@ -46,8 +46,18 @@ final class AppSettings: ObservableObject {
         static let istanbulMigration = "didMigrateToIstanbulThemes"
     }
 
-    @Published var themeID: String            { didSet { defaults.set(themeID, forKey: K.theme) } }
-    @Published var darkThemeID: String        { didSet { defaults.set(darkThemeID, forKey: K.darkTheme) } }
+    @Published var themeID: String {
+        didSet {
+            defaults.set(themeID, forKey: K.theme)
+            adoptTypography(themeID)
+        }
+    }
+    @Published var darkThemeID: String {
+        didSet {
+            defaults.set(darkThemeID, forKey: K.darkTheme)
+            adoptTypography(darkThemeID)
+        }
+    }
     @Published var followSystemAppearance: Bool { didSet { defaults.set(followSystemAppearance, forKey: K.followSystem) } }
     @Published var bodyFontName: String       { didSet { defaults.set(bodyFontName, forKey: K.bodyFont) } }
     @Published var monoFontName: String       { didSet { defaults.set(monoFontName, forKey: K.monoFont) } }
@@ -61,6 +71,16 @@ final class AppSettings: ObservableObject {
     @Published var typewriterMode: Bool       { didSet { defaults.set(typewriterMode, forKey: K.typewriter) } }
 
     // MARK: - Turetilmis degerler
+
+    /// Temanın yazı tipi varsa ayarlara yazar. Renk temaları bunu tanımlamaz.
+    private func adoptTypography(_ id: String) {
+        guard let type = Theme.byID(id).typography else { return }
+        bodyFontName = type.bodyFontName
+        headingFontName = type.headingFontName
+        monoFontName = type.monoFontName
+        editorFontName = type.editorFontName
+        lineHeight = type.lineHeight
+    }
 
     /// Sistem gorunumune gore aktif tema.
     func activeTheme(dark: Bool? = nil) -> Theme {

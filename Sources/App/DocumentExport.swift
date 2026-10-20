@@ -194,7 +194,7 @@ private struct Renderer: MarkupVisitor {
 
     mutating func visitOrderedList(_ list: OrderedList) -> NSAttributedString {
         let marker = NSTextList(markerFormat: .decimal, options: 0)
-        marker.startingItemNumber = list.startIndex
+        marker.startingItemNumber = Int(list.startIndex)
         listStack.append(marker)
         let result = joined(list)
         listStack.removeLast()
@@ -353,7 +353,7 @@ private struct Renderer: MarkupVisitor {
     private func block(_ content: NSAttributedString,
                        paragraph: NSParagraphStyle,
                        leadingTab: Bool = false,
-                       checkbox: ListItem.Checkbox? = nil) -> NSAttributedString {
+                       checkbox: Checkbox? = nil) -> NSAttributedString {
         let result = NSMutableAttributedString()
         if leadingTab {
             result.append(NSAttributedString(string: "\t", attributes: textAttributes()))
@@ -711,7 +711,7 @@ final class PreviewPDFWriter: NSObject, WKNavigationDelegate {
         info.isHorizontallyCentered = true
         info.isVerticallyCentered = false
         info.jobDisposition = .save
-        info.dictionary[NSPrintInfo.AttributeKey.jobSavingURL] = url
+        info.dictionary()[NSPrintInfo.AttributeKey.jobSavingURL] = url
 
         let operation = webView.printOperation(with: info)
         operation.showsPrintPanel = false
