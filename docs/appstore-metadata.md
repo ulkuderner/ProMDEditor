@@ -1,6 +1,6 @@
 # App Store Connect — mağaza metinleri
 
-ProMDEditor 1.1 · macOS · `com.caglar.MarkPad`
+ProMDEditor 1.1 · macOS, iPhone ve iPad · `com.caglar.MarkPad`
 
 Karakter sınırları App Store Connect'in dayattığı sınırlardır; parantez içindeki
 sayı mevcut uzunluktur.
@@ -65,6 +65,11 @@ QUICK LOOK
 Finder'da bir .md dosyası seçip boşluk tuşuna bas — render edilmiş halini
 görürsün. Önizleme uygulamayla aynı temayı ve fontları kullanır.
 
+IPHONE VE IPAD
+Aynı .md dosyasını iPhone ve iPad’de biçimli oku. Dosyalar’dan, Mattermost
+paylaşım sayfasından veya Quick Look ile açılır. Tema, Mac’teki katalogla
+aynıdır.
+
 38 TEMA
 İstanbul Day/Night (varsayılan), Çağla Day/Night, GitHub, Ayu, Night Owl,
 Kanagawa, Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula,
@@ -90,11 +95,12 @@ swift-markdown kitaplığını kullanır.
 
 **Sürüm notları / What's New (4000)** — 1.1
 ```
+• iPhone ve iPad’de biçimli Markdown okuma
+• Mattermost ve paylaşım sayfasından .md açma
 • PDF, Word ve zengin metin olarak dışa aktarma
 • İçeriği zengin metin veya HTML olarak kopyalama
 • Yeni Çağla teması
-• Tema tek ad: seçtiğin tema hem editöre hem önizlemeye uygulanır
-• Tema menüsünden gövde, başlık, eş aralıklı ve editör yazı tipini seçebilirsin
+• Tema tek ad: editör ve önizleme aynı temayı kullanır
 ```
 
 ---
@@ -148,6 +154,11 @@ QUICK LOOK
 Select a .md file in Finder and press space to see it rendered. The preview
 uses the same theme and fonts as the app.
 
+IPHONE AND IPAD
+Read the same .md file, formatted, on iPhone and iPad. Open it from Files,
+the Mattermost share sheet, or Quick Look. Themes come from the same catalog
+as the Mac app.
+
 38 THEMES
 Istanbul Day/Night (default), Çağla Day/Night, GitHub, Ayu, Night Owl,
 Kanagawa, Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula,
@@ -173,11 +184,12 @@ parsing.
 
 **What's New (4000)** — 1.1
 ```
+• Read formatted Markdown on iPhone and iPad
+• Open a .md file from Mattermost or the share sheet
 • Export as PDF, Word, and rich text
 • Copy the document as rich text or HTML
 • New Çağla theme
 • One theme name applies to both the editor and the preview
-• Choose body, heading, monospace, and editor fonts from the theme menu
 ```
 
 ---
@@ -212,12 +224,13 @@ Mac için kabul edilen boyutlar — hepsi 16:10:
 
 En az 1, en fazla 10 adet.
 
-Hazır olanlar — `dist/screenshots/`, hepsi 2560 × 1600, İngilizce arayüz:
+Hazır olanlar — `dist/screenshots/`. Belge metni İngilizce (`Notes.md`).
 
-| # | Dosya | İçerik |
+| Dosya | Boyut | İçerik |
 |---|---|---|
-| 1 | `01-split-view.png` | Bölünmüş görünüm — solda editör, sağda önizleme |
-| 2 | `02-file-comparison.png` | Dosya karşılaştırma (⌘4), kelime bazlı farklar |
-| 3 | `03-themes.png` | Tema menüsü açık |
+| `01-split-view.png` | 2560 × 1600 | Mac, bölünmüş görünüm |
+| `02-preview.png` | 2560 × 1600 | Mac, yalnızca önizleme |
+| `iphone-notes.png` | 1320 × 2868 | iPhone 6.9 inç |
+| `ipad-notes.png` | 2064 × 2752 | iPad 13 inç |
 
-Eklenebilecekler: Finder'da Quick Look önizlemesi, tipografi ayarları.
+iPhone 6.9 inç ve iPad 13 inç bu sürümde zorunlu. Mac seti 16:10.

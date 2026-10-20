@@ -1,4 +1,7 @@
+import Foundation
+#if os(macOS)
 import AppKit
+#endif
 
 /// Bir temayla gelen yazı tipi. Seçilince ayarlara yazılır; sonra elle
 /// değiştirilebilir.
@@ -302,6 +305,7 @@ struct Theme: Identifiable, Hashable {
         all.first { $0.id == id } ?? .istanbulDay
     }
 
+    #if os(macOS)
     // MARK: - AppKit renkleri (editor tarafi icin)
 
     var nsBackground: NSColor { NSColor(hex: bg) ?? .textBackgroundColor }
@@ -310,6 +314,7 @@ struct Theme: Identifiable, Hashable {
     var nsAccent: NSColor     { NSColor(hex: accent) ?? .linkColor }
     var nsCodeBG: NSColor     { NSColor(hex: codeBG) ?? .underPageBackgroundColor }
     var nsSelection: NSColor  { NSColor(hex: selection) ?? .selectedTextBackgroundColor }
+    #endif
 }
 
 // MARK: - CSS
@@ -414,7 +419,8 @@ enum StyleSheet {
     ///
     /// `forPrint` yazdirma ve PDF icin arka plan renginin kagida gecmesini ister.
     static func document(bodyHTML: String, theme: Theme, settings: AppSettings,
-                         includeScrollBridge: Bool, forPrint: Bool = false) -> String {
+                         includeScrollBridge: Bool, forPrint: Bool = false,
+                         compact: Bool = false) -> String {
         let bridge = includeScrollBridge ? """
         <script>
         window.mpScrollTo = function(p) {
@@ -435,6 +441,10 @@ enum StyleSheet {
         }
         """ : ""
 
+        let compactCSS = compact ? """
+        #content { max-width: none; padding: 20px 16px 72px; }
+        """ : ""
+
         let lang = Locale.current.language.languageCode?.identifier ?? "en"
 
         return """
@@ -444,7 +454,8 @@ enum StyleSheet {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>\(css(theme: theme, settings: settings))
-        \(printCSS)</style>
+        \(printCSS)
+        \(compactCSS)</style>
         </head>
         <body><div id="content">\(bodyHTML)</div>\(bridge)</body>
         </html>
@@ -452,6 +463,7 @@ enum StyleSheet {
     }
 }
 
+#if os(macOS)
 // MARK: - Hex -> NSColor
 
 extension NSColor {
@@ -465,3 +477,4 @@ extension NSColor {
                   alpha: 1)
     }
 }
+#endif

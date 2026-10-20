@@ -1,5 +1,8 @@
-import AppKit
+import Foundation
 import Combine
+#if os(macOS)
+import AppKit
+#endif
 
 /// Uygulama + Quick Look eklentisi tarafindan paylasilan ayarlar.
 /// App Group tanimliysa ayarlar eklentiye de gecer; degilse standard defaults'a duser.
@@ -88,6 +91,7 @@ final class AppSettings: ObservableObject {
         Theme.byID(themeID)
     }
 
+    #if os(macOS)
     func editorFont() -> NSFont {
         NSFont(name: editorFontName, size: editorFontSize)
             ?? .monospacedSystemFont(ofSize: editorFontSize, weight: .regular)
@@ -97,6 +101,7 @@ final class AppSettings: ObservableObject {
         NSFont(name: monoFontName, size: editorFontSize)
             ?? .monospacedSystemFont(ofSize: editorFontSize, weight: .regular)
     }
+    #endif
 
     /// CSS icin font-family zinciri uretir.
     func cssStack(_ name: String, fallback: String) -> String {

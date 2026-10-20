@@ -4,6 +4,7 @@ options:
   developmentLanguage: en
   deploymentTarget:
     macOS: "13.0"
+    iOS: "17.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -21,7 +22,7 @@ settingGroups:
       SWIFT_VERSION: "5.9"
       SWIFT_EMIT_LOC_STRINGS: YES
       MARKETING_VERSION: "1.1"
-      CURRENT_PROJECT_VERSION: "2"
+      CURRENT_PROJECT_VERSION: "3"
       ENABLE_HARDENED_RUNTIME: YES
       CODE_SIGN_STYLE: Automatic
       SWIFT_EMIT_LOC_STRINGS: YES
@@ -92,6 +93,112 @@ targets:
         # icin elle gecersiz kiliyoruz.
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/ProMDEditor.app/Contents/MacOS/ProMDEditor
 
+  MarkPadIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/iOS
+        excludes: ["Info.plist", "ScreenshotApp.swift"]
+      - path: Sources/Shared/Theme.swift
+      - path: Sources/Shared/AppSettings.swift
+      - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Resources/Assets.xcassets
+      - path: Resources/Localizable.xcstrings
+    dependencies:
+      - package: Markdown
+        product: Markdown
+      - target: MarkPadIOSQuickLook
+        embed: true
+      - target: MarkPadIOSShare
+        embed: true
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: ProMDEditor
+        PRODUCT_MODULE_NAME: MarkPadIOS
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: Sources/iOS/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: NO
+
+  MarkPadIOSQuickLook:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/iOSQuickLook
+        excludes: ["Info.plist"]
+      - path: Sources/iOS/FormattedMarkdown.swift
+      - path: Sources/Shared/Theme.swift
+      - path: Sources/Shared/AppSettings.swift
+      - path: Sources/Shared/MarkdownHTMLRenderer.swift
+    dependencies:
+      - package: Markdown
+        product: Markdown
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: MarkPadIOSQuickLook
+        PRODUCT_MODULE_NAME: MarkPadIOSQuickLook
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.ReaderQuickLook
+        INFOPLIST_FILE: Sources/iOSQuickLook/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+
+  MarkPadIOSShare:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/iOSShare
+        excludes: ["Info.plist"]
+      - path: Sources/iOS/FormattedMarkdown.swift
+      - path: Sources/Shared/Theme.swift
+      - path: Sources/Shared/AppSettings.swift
+      - path: Sources/Shared/MarkdownHTMLRenderer.swift
+    dependencies:
+      - package: Markdown
+        product: Markdown
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: MarkPadIOSShare
+        PRODUCT_MODULE_NAME: MarkPadIOSShare
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.Share
+        INFOPLIST_FILE: Sources/iOSShare/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+
+  MarkPadIOSScreenshots:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/iOS
+        excludes: ["Info.plist", "ReaderApp.swift"]
+      - path: Sources/Shared/Theme.swift
+      - path: Sources/Shared/AppSettings.swift
+      - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Resources/Assets.xcassets
+      - path: Resources/Localizable.xcstrings
+    dependencies:
+      - package: Markdown
+        product: Markdown
+    settings:
+      groups: [common]
+      base:
+        PRODUCT_NAME: ProMDEditor
+        PRODUCT_MODULE_NAME: MarkPadIOSScreenshots
+        PRODUCT_BUNDLE_IDENTIFIER: com.caglar.MarkPad.screenshots
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: Sources/iOS/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: NO
+
 schemes:
   MarkPad:
     build:
@@ -106,3 +213,17 @@ schemes:
         - MarkPadTests
     archive:
       config: Release
+  MarkPadIOS:
+    build:
+      targets:
+        MarkPadIOS: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  MarkPadIOSScreenshots:
+    build:
+      targets:
+        MarkPadIOSScreenshots: all
+    run:
+      config: Debug
