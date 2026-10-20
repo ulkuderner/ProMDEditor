@@ -1,6 +1,6 @@
 # App Store Connect — mağaza metinleri
 
-ProMDEditor 1.0 · macOS · `com.caglar.MarkPad`
+ProMDEditor 1.1 · macOS · `com.caglar.MarkPad`
 
 Karakter sınırları App Store Connect'in dayattığı sınırlardır; parantez içindeki
 sayı mevcut uzunluktur.
@@ -23,7 +23,7 @@ Markdown, kaybolan biçim yok
 > İnceleme gerektirmeden istediğin zaman değiştirebildiğin tek alan budur.
 > Kampanya, yeni özellik duyurusu için kullan.
 ```
-İki .md dosyasını yan yana aç, farkları tek tıkla iki yöne taşı. 36 tema, Finder'da boşluk tuşuyla önizleme. Dosyan hep düz Markdown kalır.
+İki .md dosyasını yan yana aç, farkları tek tıkla iki yöne taşı. 38 tema, Finder'da boşluk tuşuyla önizleme. Dosyan hep düz Markdown kalır.
 ```
 
 **Anahtar kelimeler / Keywords (100)** — 90
@@ -65,13 +65,13 @@ QUICK LOOK
 Finder'da bir .md dosyası seçip boşluk tuşuna bas — render edilmiş halini
 görürsün. Önizleme uygulamayla aynı temayı ve fontları kullanır.
 
-36 TEMA
-İstanbul Day/Night (varsayılan), GitHub, Ayu, Night Owl, Kanagawa, Vitesse,
-Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula, Monokai, Nord, Cobalt2,
-Panda, Material Ocean ve yüksek kontrast seçenekleri. Hepsi WCAG AAA hedefine
-göre ayarlandı: gövde metni en az 8:1, bağlantı ve soluk metin en az 4.6:1, kod
-bloğu en az 7:1 kontrast oranında. Açık ve koyu tema ayrı seçilir, sistem
-görünümünü izler.
+38 TEMA
+İstanbul Day/Night (varsayılan), Çağla Day/Night, GitHub, Ayu, Night Owl,
+Kanagawa, Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula,
+Monokai, Nord, Cobalt2, Panda, Material Ocean ve yüksek kontrast seçenekleri.
+Hepsi WCAG AAA hedefine göre ayarlandı: gövde metni en az 8:1, bağlantı ve
+soluk metin en az 4.6:1, kod bloğu en az 7:1 kontrast oranında. Tema tek adla
+seçilir; editör ve önizleme aynı temaya geçer.
 
 TİPOGRAFİ
 Sistemdeki tüm yazı tipleri arasından gövde, başlık, tek aralıklı ve editör
@@ -81,16 +81,20 @@ yaslama ve daktilo modu ayarlanabilir.
 DAHASI
 - GFM desteği: tablolar, görev listeleri, üstü çizili metin, fenced code
 - Bölünmüş görünüm ve kaydırma senkronizasyonu (⌘1 / ⌘2 / ⌘3)
-- HTML dışa aktarma
-- Yazdır menüsünden PDF olarak kaydetme
+- HTML, PDF, Word ve zengin metin olarak dışa aktarma
+- Zengin metin ve HTML olarak kopyalama
 
 ProMDEditor açık kaynaktır (MIT). Markdown ayrıştırma için Apple'ın
 swift-markdown kitaplığını kullanır.
 ```
 
-**Sürüm notları / What's New (4000)** — ilk sürümde isteğe bağlı
+**Sürüm notları / What's New (4000)** — 1.1
 ```
-İlk sürüm.
+• PDF, Word ve zengin metin olarak dışa aktarma
+• İçeriği zengin metin veya HTML olarak kopyalama
+• Yeni Çağla teması
+• Tema tek ad: seçtiğin tema hem editöre hem önizlemeye uygulanır
+• Tema menüsünden gövde, başlık, eş aralıklı ve editör yazı tipini seçebilirsin
 ```
 
 ---
@@ -104,7 +108,7 @@ Markdown that stays Markdown
 
 **Promotional Text (170)** — 154
 ```
-Open two .md files side by side and move any difference either way in one click. 36 themes, Quick Look previews in Finder. Your file stays plain Markdown.
+Open two .md files side by side and move any difference either way in one click. 38 themes, Quick Look previews in Finder. Your file stays plain Markdown.
 ```
 
 **Keywords (100)** — 88
@@ -144,13 +148,13 @@ QUICK LOOK
 Select a .md file in Finder and press space to see it rendered. The preview
 uses the same theme and fonts as the app.
 
-36 THEMES
-Istanbul Day/Night (default), GitHub, Ayu, Night Owl, Kanagawa, Vitesse,
-Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula, Monokai, Nord, Cobalt2,
-Panda, Material Ocean and high-contrast variants. All are tuned to WCAG AAA
-targets: body text at least 8:1, links and muted text at least 4.6:1, code
-blocks at least 7:1. Light and dark themes are chosen separately and follow the
-system appearance.
+38 THEMES
+Istanbul Day/Night (default), Çağla Day/Night, GitHub, Ayu, Night Owl,
+Kanagawa, Vitesse, Catppuccin, Gruvbox, Rosé Pine, Tokyo Night, Dracula,
+Monokai, Nord, Cobalt2, Panda, Material Ocean and high-contrast variants. All
+are tuned to WCAG AAA targets: body text at least 8:1, links and muted text at
+least 4.6:1, code blocks at least 7:1. You pick one theme name, and both the
+editor and the preview switch to it.
 
 TYPOGRAPHY
 Pick body, heading, monospace and editor fonts independently from every font
@@ -160,11 +164,20 @@ typewriter mode are all adjustable.
 ALSO
 - GFM support: tables, task lists, strikethrough, fenced code
 - Split view with scroll sync (⌘1 / ⌘2 / ⌘3)
-- HTML export
-- Save as PDF from the Print menu
+- Export as HTML, PDF, Word, and rich text
+- Copy as rich text or HTML
 
 ProMDEditor is open source (MIT) and uses Apple's swift-markdown library for
 parsing.
+```
+
+**What's New (4000)** — 1.1
+```
+• Export as PDF, Word, and rich text
+• Copy the document as rich text or HTML
+• New Çağla theme
+• One theme name applies to both the editor and the preview
+• Choose body, heading, monospace, and editor fonts from the theme menu
 ```
 
 ---
