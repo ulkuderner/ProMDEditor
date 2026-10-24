@@ -412,6 +412,24 @@ enum StyleSheet {
           border-radius: 5px; background: var(--code-bg);
         }
         .footnotes { font-size: .9em; color: var(--muted); border-top: 1px solid var(--border); margin-top: 2.5em; padding-top: 1em; }
+        .footnotes li { margin: .4em 0; }
+        sup.fnref { font-size: .75em; line-height: 0; }
+        sup.fnref a, .fn-back { text-decoration: none; }
+        .mp-math { font-family: \(mono); }
+        .mp-math[data-display="true"] {
+          display: block; margin: 1em 0; overflow-x: auto; text-align: center; white-space: pre-wrap;
+        }
+        aside.mp-alert {
+          margin: 0 0 1.05em; padding: .7em 1em .15em;
+          border-left: 4px solid var(--accent); border-radius: 8px;
+          background: color-mix(in srgb, var(--code-bg) 80%, transparent);
+        }
+        .mp-alert-title { font-weight: 700; margin: 0 0 .35em; text-align: left; }
+        .mp-note { border-left-color: var(--accent); }
+        .mp-tip { border-left-color: #1f8a4c; }
+        .mp-important { border-left-color: #8250df; }
+        .mp-warning { border-left-color: #9a6700; }
+        .mp-caution { border-left-color: #d1242f; }
         """
     }
 
@@ -446,6 +464,7 @@ enum StyleSheet {
         """ : ""
 
         let lang = Locale.current.language.languageCode?.identifier ?? "en"
+        let math = KatexSupport.injection(forHTML: bodyHTML)
 
         return """
         <!DOCTYPE html>
@@ -455,9 +474,10 @@ enum StyleSheet {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>\(css(theme: theme, settings: settings))
         \(printCSS)
-        \(compactCSS)</style>
+        \(compactCSS)
+        \(math.css)</style>
         </head>
-        <body><div id="content">\(bodyHTML)</div>\(bridge)</body>
+        <body><div id="content"><!--MP_CONTENT-->\(bodyHTML)<!--/MP_CONTENT--></div>\(bridge)\(math.script)</body>
         </html>
         """
     }

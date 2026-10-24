@@ -7,10 +7,41 @@ struct MarkdownHTMLRenderer: MarkupVisitor {
 
     typealias Result = String
 
-    static func render(_ markdown: String) -> String {
+    static func render(_ markdown: String, augment: Bool = true) -> String {
+        if !augment {
+            return renderParsed(markdown)
+        }
+        let prepared = MarkdownAugments.prepare(markdown)
+        let body = MarkdownAugments.substituting(renderParsed(prepared.markdown), with: prepared)
+        return body + footnoteSection(prepared)
+    }
+
+    private static func renderParsed(_ markdown: String) -> String {
         let document = Document(parsing: markdown, options: [.parseBlockDirectives])
         var renderer = MarkdownHTMLRenderer()
         return renderer.visit(document)
+    }
+
+    private static func footnoteSection(_ prepared: PreparedMarkdown) -> String {
+        guard !prepared.footnotes.isEmpty else { return "" }
+        var out = "<section class=\"footnotes\">\n<ol>\n"
+        for note in prepared.footnotes {
+            let rendered = MarkdownAugments.substituting(renderParsed(note.body), with: prepared)
+            let linked = note.referenced ? withBacklink(rendered, number: note.number) : rendered
+            out += "<li id=\"fn-\(note.number)\">\(linked)</li>\n"
+        }
+        out += "</ol>\n</section>\n"
+        return out
+    }
+
+    private static func withBacklink(_ html: String, number: Int) -> String {
+        let link = " <a href=\"#fnref-\(number)\" class=\"fn-back\">↩</a>"
+        if let range = html.range(of: "</p>", options: .backwards) {
+            var copy = html
+            copy.insert(contentsOf: link, at: range.lowerBound)
+            return copy
+        }
+        return html + link
     }
 
     // MARK: - Yardimcilar
@@ -82,7 +113,32 @@ struct MarkdownHTMLRenderer: MarkupVisitor {
     }
 
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> String {
-        "<blockquote>\n\(children(of: blockQuote))</blockquote>\n"
+        let plain = blockQuote.children.compactMap { ($0 as? Paragraph)?.plainText }
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let kind = Self.alertKind(in: plain) {
+            let inner = Self.stripAlertMarker(kind, from: children(of: blockQuote))
+            let title = Self.escape(kind.title)
+            return "<aside class=\"mp-alert \(kind.cssClass)\"><p class=\"mp-alert-title\">\(title)</p>\(inner)</aside>\n"
+        }
+        return "<blockquote>\n\(children(of: blockQuote))</blockquote>\n"
+    }
+
+    private static let alertDetector = try! NSRegularExpression(
+        pattern: "^\\[!((?:NOTE|TIP|IMPORTANT|WARNING|CAUTION))\\]")
+
+    private static func alertKind(in plain: String) -> AlertKind? {
+        let ns = plain as NSString
+        guard let m = alertDetector.firstMatch(in: plain, range: NSRange(location: 0, length: ns.length)),
+              let kind = AlertKind(rawValue: ns.substring(with: m.range(at: 1))) else { return nil }
+        return kind
+    }
+
+    private static func stripAlertMarker(_ kind: AlertKind, from html: String) -> String {
+        let pattern = "\\[!(\(kind.rawValue))\\](?:[ \\t]*<br\\s*/?>)?[ \\t\\n]*"
+        var stripped = html.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+        stripped = stripped.replacingOccurrences(of: "<p></p>\\n?", with: "", options: .regularExpression)
+        return stripped
     }
 
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> String {

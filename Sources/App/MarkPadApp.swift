@@ -57,25 +57,9 @@ struct MarkPadCommands: Commands {
         }
 
         CommandMenu("Format") {
-            button("Bold", .bold, "b", [.command])
-            button("Italic", .italic, "i", [.command])
-            button("Strikethrough", .strikethrough, "x", [.command, .shift])
-            button("Inline Code", .inlineCode, "e", [.command])
-            Divider()
-            button("Heading 1", .heading(1), "1", [.command, .control])
-            button("Heading 2", .heading(2), "2", [.command, .control])
-            button("Heading 3", .heading(3), "3", [.command, .control])
-            button("Body Text", .heading(0), "0", [.command, .control])
-            Divider()
-            button("Bulleted List", .bulletList, "l", [.command, .shift])
-            button("Numbered List", .numberedList, "n", [.command, .shift])
-            button("Task List", .taskList, "t", [.command, .shift])
-            button("Blockquote", .blockQuote, "'", [.command, .shift])
-            button("Code Block", .codeBlock, "k", [.command, .shift])
-            Divider()
-            button("Add Link…", .link, "k", [.command])
-            button("Horizontal Rule", .horizontalRule, "-", [.command, .shift])
-            button("Insert Table", .table, "t", [.command, .control])
+            ForEach(FormatCatalog.entries) { entry in
+                FormatEntryRow(entry: entry, shortcuts: true) { $0.post() }
+            }
         }
 
         CommandGroup(after: .toolbar) {
@@ -118,21 +102,12 @@ struct MarkPadCommands: Commands {
         NotificationCenter.default.post(name: .markPadExport, object: command)
     }
 
-    private func button(_ title: LocalizedStringKey, _ command: FormatCommand,
-                        _ key: KeyEquivalent, _ mods: EventModifiers) -> some View {
-        Button(title) {
-            NotificationCenter.default.post(name: .markPadFormat, object: command)
-        }
-        .keyboardShortcut(key, modifiers: mods)
-    }
-
     private func post(_ name: Notification.Name, mode: ViewMode) {
         NotificationCenter.default.post(name: name, object: mode)
     }
 }
 
 extension Notification.Name {
-    static let markPadFormat = Notification.Name("markPadFormat")
     static let setMode = Notification.Name("markPadSetMode")
     static let markPadChooseCompareFile = Notification.Name("markPadChooseCompareFile")
 }

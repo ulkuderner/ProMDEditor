@@ -21,8 +21,8 @@ settingGroups:
     base:
       SWIFT_VERSION: "5.9"
       SWIFT_EMIT_LOC_STRINGS: YES
-      MARKETING_VERSION: "1.1"
-      CURRENT_PROJECT_VERSION: "3"
+      MARKETING_VERSION: "1.2"
+      CURRENT_PROJECT_VERSION: "4"
       ENABLE_HARDENED_RUNTIME: YES
       CODE_SIGN_STYLE: Automatic
       SWIFT_EMIT_LOC_STRINGS: YES
@@ -39,6 +39,8 @@ targets:
       - path: Resources/Assets.xcassets
       - path: Resources/Localizable.xcstrings
       - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
+      - path: Resources/KaTeX
         buildPhase: resources
     dependencies:
       - package: Markdown
@@ -65,6 +67,8 @@ targets:
       - path: Sources/QuickLook
         excludes: ["Info.plist", "*.entitlements"]
       - path: Sources/Shared
+        excludes:
+          - FormatMenus.swift
     dependencies:
       - package: Markdown
         product: Markdown
@@ -103,8 +107,15 @@ targets:
       - path: Sources/Shared/Theme.swift
       - path: Sources/Shared/AppSettings.swift
       - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Sources/Shared/FormatCommand.swift
+      - path: Sources/Shared/MarkdownEditing.swift
+      - path: Sources/Shared/MarkdownAugments.swift
+      - path: Sources/Shared/KatexSupport.swift
+      - path: Sources/Shared/FormatMenus.swift
       - path: Resources/Assets.xcassets
       - path: Resources/Localizable.xcstrings
+      - path: Resources/KaTeX
+        buildPhase: resources
     dependencies:
       - package: Markdown
         product: Markdown
@@ -135,6 +146,9 @@ targets:
       - path: Sources/Shared/Theme.swift
       - path: Sources/Shared/AppSettings.swift
       - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Sources/Shared/FormatCommand.swift
+      - path: Sources/Shared/MarkdownAugments.swift
+      - path: Sources/Shared/KatexSupport.swift
     dependencies:
       - package: Markdown
         product: Markdown
@@ -159,6 +173,11 @@ targets:
       - path: Sources/Shared/Theme.swift
       - path: Sources/Shared/AppSettings.swift
       - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Sources/Shared/FormatCommand.swift
+      - path: Sources/Shared/MarkdownAugments.swift
+      - path: Sources/Shared/KatexSupport.swift
+      - path: Resources/KaTeX
+        buildPhase: resources
     dependencies:
       - package: Markdown
         product: Markdown
@@ -182,8 +201,15 @@ targets:
       - path: Sources/Shared/Theme.swift
       - path: Sources/Shared/AppSettings.swift
       - path: Sources/Shared/MarkdownHTMLRenderer.swift
+      - path: Sources/Shared/FormatCommand.swift
+      - path: Sources/Shared/MarkdownEditing.swift
+      - path: Sources/Shared/MarkdownAugments.swift
+      - path: Sources/Shared/KatexSupport.swift
+      - path: Sources/Shared/FormatMenus.swift
       - path: Resources/Assets.xcassets
       - path: Resources/Localizable.xcstrings
+      - path: Resources/KaTeX
+        buildPhase: resources
     dependencies:
       - package: Markdown
         product: Markdown

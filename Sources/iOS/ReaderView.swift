@@ -4,6 +4,7 @@ import WebKit
 struct ReaderView: View {
     let text: String
     let baseURL: URL?
+    var showsThemeMenu = true
 
     @EnvironmentObject private var settings: AppSettings
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -18,7 +19,7 @@ struct ReaderView: View {
         HTMLView(html: html, baseURL: baseURL, background: theme.bg)
             .background(Color(hex: theme.bg))
             .ignoresSafeArea(edges: .bottom)
-            .toolbar { themeMenu }
+            .toolbar { if showsThemeMenu { themeMenu } }
     }
 
     private var themeMenu: some ToolbarContent {
@@ -42,8 +43,11 @@ struct HTMLView: UIViewRepresentable {
     let background: String
 
     func makeUIView(context: Context) -> WKWebView {
-        let view = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        let config = WKWebViewConfiguration()
+        config.defaultWebpagePreferences.allowsContentJavaScript = true
+        let view = WKWebView(frame: .zero, configuration: config)
         view.isOpaque = false
+        view.navigationDelegate = context.coordinator
         view.backgroundColor = UIColor(hex: background)
         view.scrollView.backgroundColor = view.backgroundColor
         return view
@@ -52,31 +56,37 @@ struct HTMLView: UIViewRepresentable {
     func updateUIView(_ view: WKWebView, context: Context) {
         view.backgroundColor = UIColor(hex: background)
         view.scrollView.backgroundColor = view.backgroundColor
-        if context.coordinator.loaded != html {
+        let parts = HTMLPatch.parts(of: html)
+        if context.coordinator.ready,
+           let parts,
+           parts.shell == context.coordinator.shell,
+           parts.body != context.coordinator.body,
+           let script = HTMLPatch.script(replacingBody: parts.body) {
+            context.coordinator.body = parts.body
             context.coordinator.loaded = html
+            view.evaluateJavaScript(script)
+            return
+        }
+        if context.coordinator.loaded != html {
+            context.coordinator.ready = false
+            context.coordinator.loaded = html
+            context.coordinator.shell = parts?.shell
+            context.coordinator.body = parts?.body
             view.loadHTMLString(html, baseURL: baseURL)
         }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator {
+    final class Coordinator: NSObject, WKNavigationDelegate {
         var loaded: String?
+        var shell: String?
+        var body: String?
+        var ready = false
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            ready = true
+        }
     }
 }
 
-private extension UIColor {
-    convenience init(hex: String) {
-        var s = hex.trimmingCharacters(in: .whitespaces)
-        if s.hasPrefix("#") { s.removeFirst() }
-        let v = UInt32(s, radix: 16) ?? 0
-        self.init(red: CGFloat((v >> 16) & 0xFF) / 255,
-                  green: CGFloat((v >> 8) & 0xFF) / 255,
-                  blue: CGFloat(v & 0xFF) / 255,
-                  alpha: 1)
-    }
-}
-
-private extension Color {
-    init(hex: String) { self.init(uiColor: UIColor(hex: hex)) }
-}

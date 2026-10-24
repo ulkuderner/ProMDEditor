@@ -21,8 +21,22 @@ struct PreviewWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
-        if context.coordinator.lastHTML != html {
+        let parts = HTMLPatch.parts(of: html)
+        if context.coordinator.ready,
+           let parts,
+           parts.shell == context.coordinator.shell,
+           parts.body != context.coordinator.body,
+           let script = HTMLPatch.script(replacingBody: parts.body) {
+            context.coordinator.body = parts.body
             context.coordinator.lastHTML = html
+            webView.evaluateJavaScript(script)
+            return
+        }
+        if context.coordinator.lastHTML != html {
+            context.coordinator.ready = false
+            context.coordinator.lastHTML = html
+            context.coordinator.shell = parts?.shell
+            context.coordinator.body = parts?.body
             context.coordinator.pendingScroll = context.coordinator.currentScroll
             webView.loadHTMLString(html, baseURL: baseURL)
         } else if let scrollPercent, abs(scrollPercent - context.coordinator.currentScroll) > 0.005 {
@@ -33,10 +47,14 @@ struct PreviewWebView: NSViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         var lastHTML: String = ""
+        var shell: String?
+        var body: String?
+        var ready = false
         var currentScroll: Double = 0
         var pendingScroll: Double?
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            ready = true
             if let p = pendingScroll {
                 webView.evaluateJavaScript("window.mpScrollTo(\(p));")
                 pendingScroll = nil

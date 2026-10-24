@@ -1,6 +1,6 @@
 # App Store Connect — mağaza metinleri
 
-ProMDEditor 1.1 · macOS, iPhone ve iPad · `com.caglar.MarkPad`
+ProMDEditor 1.2 · macOS, iPhone ve iPad · `com.caglar.MarkPad`
 
 Karakter sınırları App Store Connect'in dayattığı sınırlardır; parantez içindeki
 sayı mevcut uzunluktur.
@@ -66,9 +66,10 @@ Finder'da bir .md dosyası seçip boşluk tuşuna bas — render edilmiş halini
 görürsün. Önizleme uygulamayla aynı temayı ve fontları kullanır.
 
 IPHONE VE IPAD
-Aynı .md dosyasını iPhone ve iPad’de biçimli oku. Dosyalar’dan, Mattermost
-paylaşım sayfasından veya Quick Look ile açılır. Tema, Mac’teki katalogla
-aynıdır.
+Aynı .md dosyasını iPhone ve iPad’de düzenle ve biçimli oku. Biçim menüsü
+Mac ile aynıdır: başlık, liste, tablo, dipnot ve matematik formülü.
+Dosyalar’dan, Mattermost paylaşım sayfasından veya Quick Look ile açılır.
+Tema, Mac’teki katalogla aynıdır.
 
 38 TEMA
 İstanbul Day/Night (varsayılan), Çağla Day/Night, GitHub, Ayu, Night Owl,
@@ -93,14 +94,12 @@ ProMDEditor açık kaynaktır (MIT). Markdown ayrıştırma için Apple'ın
 swift-markdown kitaplığını kullanır.
 ```
 
-**Sürüm notları / What's New (4000)** — 1.1
+**Sürüm notları / What's New (4000)** — 1.2
 ```
-• iPhone ve iPad’de biçimli Markdown okuma
-• Mattermost ve paylaşım sayfasından .md açma
-• PDF, Word ve zengin metin olarak dışa aktarma
-• İçeriği zengin metin veya HTML olarak kopyalama
-• Yeni Çağla teması
-• Tema tek ad: editör ve önizleme aynı temayı kullanır
+• iPhone ve iPad’de düzenleme: Mac ile aynı Biçim menüsü
+• Başlık, liste, tablo, dipnot, uyarı kutusu ve kod bloğu menüden eklenir
+• Satır içi ve blok matematik formülleri önizlemede çizilir
+• Dosya iPhone ve iPad’de kaydedilir
 ```
 
 ---
@@ -155,9 +154,10 @@ Select a .md file in Finder and press space to see it rendered. The preview
 uses the same theme and fonts as the app.
 
 IPHONE AND IPAD
-Read the same .md file, formatted, on iPhone and iPad. Open it from Files,
-the Mattermost share sheet, or Quick Look. Themes come from the same catalog
-as the Mac app.
+Edit and read the same .md file on iPhone and iPad. The Format menu matches
+the Mac: headings, lists, tables, footnotes, and math formulas. Open it from
+Files, the Mattermost share sheet, or Quick Look. Themes come from the same
+catalog as the Mac app.
 
 38 THEMES
 Istanbul Day/Night (default), Çağla Day/Night, GitHub, Ayu, Night Owl,
@@ -182,14 +182,12 @@ ProMDEditor is open source (MIT) and uses Apple's swift-markdown library for
 parsing.
 ```
 
-**What's New (4000)** — 1.1
+**What's New (4000)** — 1.2
 ```
-• Read formatted Markdown on iPhone and iPad
-• Open a .md file from Mattermost or the share sheet
-• Export as PDF, Word, and rich text
-• Copy the document as rich text or HTML
-• New Çağla theme
-• One theme name applies to both the editor and the preview
+• Edit on iPhone and iPad with the same Format menu as the Mac
+• Insert headings, lists, tables, footnotes, alerts, and code blocks from the menu
+• Inline and display math formulas render in the preview
+• Save the file on iPhone and iPad
 ```
 
 ---

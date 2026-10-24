@@ -173,72 +173,11 @@ struct ContentView: View {
     /// Pencere arac cubugundan ayri, opak bicim seridi. Cam yalnizca
     /// sistem arac cubugunda kalir; bu serit icerik katmanidir.
     private var formatBar: some View {
-        HStack(spacing: 2) {
-            formatButton("bold", "Bold (⌘B)", .bold)
-            formatButton("italic", "Italic (⌘I)", .italic)
-            formatButton("strikethrough", "Strikethrough", .strikethrough)
-            formatButton("chevron.left.forwardslash.chevron.right", "Inline code (⌘E)", .inlineCode)
-
-            formatDivider
-
-            Menu {
-                Button("Heading 1") { controller.apply(.heading(1)) }
-                Button("Heading 2") { controller.apply(.heading(2)) }
-                Button("Heading 3") { controller.apply(.heading(3)) }
-                Button("Heading 4") { controller.apply(.heading(4)) }
-                Divider()
-                Button("Body text") { controller.apply(.heading(0)) }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "textformat.size")
-                    Text("Heading")
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-                .font(.body)
-                .padding(.horizontal, 6)
-                .frame(minHeight: 28)
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-
-            formatDivider
-
-            formatButton("list.bullet", "Bulleted list", .bulletList)
-            formatButton("list.number", "Numbered list", .numberedList)
-            formatButton("checklist", "Task list", .taskList)
-            formatButton("text.quote", "Blockquote", .blockQuote)
-            formatButton("curlybraces", "Code block", .codeBlock)
-
-            formatDivider
-
-            formatButton("link", "Link (⌘K)", .link)
-            formatButton("tablecells", "Table", .table)
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .overlay(alignment: .bottom) { Divider() }
-    }
-
-    private var formatDivider: some View {
-        Divider()
-            .frame(height: 16)
-            .padding(.horizontal, 6)
-    }
-
-    private func formatButton(_ symbol: String, _ help: LocalizedStringKey, _ command: FormatCommand) -> some View {
-        Button { controller.apply(command) } label: {
-            Image(systemName: symbol)
-                .font(.system(size: 13, weight: .regular))
-                .frame(width: 28, height: 28)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.borderless)
-        .help(help)
+        FormatToolbar { controller.apply($0) }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .overlay(alignment: .bottom) { Divider() }
     }
 
     private var exportMenu: some View {

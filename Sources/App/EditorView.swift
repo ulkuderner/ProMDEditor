@@ -150,33 +150,11 @@ struct EditorView: NSViewRepresentable {
                       shouldChangeTextIn affectedCharRange: NSRange,
                       replacementString: String?) -> Bool {
             guard !isApplyingExternalText else { return true }
-            guard replacementString == "\n" else { return true }
-            let ns = textView.string as NSString
-            let lineRange = ns.lineRange(for: NSRange(location: affectedCharRange.location, length: 0))
-            let line = ns.substring(with: lineRange).trimmingCharacters(in: .newlines)
-
-            guard let re = try? NSRegularExpression(pattern: "^(\\s*)([-*+]\\s(?:\\[[ xX]\\]\\s)?|(\\d+)\\.\\s)"),
-                  let m = re.firstMatch(in: line, range: NSRange(location: 0, length: (line as NSString).length))
-            else { return true }
-
-            let lineNS = line as NSString
-            let content = lineNS.substring(from: m.range.length)
-            let indent = lineNS.substring(with: m.range(at: 1))
-
-            // Bos madde: listeyi bitir
-            if content.trimmingCharacters(in: .whitespaces).isEmpty {
-                textView.insertText("", replacementRange: lineRange)
-                return false
-            }
-
-            var marker = lineNS.substring(with: m.range(at: 2))
-            if m.range(at: 3).location != NSNotFound,
-               let n = Int(lineNS.substring(with: m.range(at: 3))) {
-                marker = "\(n + 1). "
-            }
-            marker = marker.replacingOccurrences(of: "[x] ", with: "[ ] ")
-                           .replacingOccurrences(of: "[X] ", with: "[ ] ")
-            textView.insertText("\n" + indent + marker, replacementRange: affectedCharRange)
+            guard let replacementString,
+                  let edit = MarkdownEditing.listContinuation(in: textView.string,
+                                                              replacing: affectedCharRange,
+                                                              with: replacementString) else { return true }
+            textView.insertText(edit.replacement, replacementRange: edit.range)
             return false
         }
 
