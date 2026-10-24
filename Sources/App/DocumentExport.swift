@@ -43,7 +43,7 @@ enum MarkdownRichText {
 
     static func render(_ markdown: String, settings: AppSettings, theme: Theme, baseURL: URL?) -> NSAttributedString {
         let document = Document(parsing: markdown, options: [.parseBlockDirectives])
-        var renderer = Renderer(style: RichTextStyle(settings: settings, theme: theme, baseURL: baseURL))
+        var renderer = RichTextRenderer(style: RichTextStyle(settings: settings, theme: theme, baseURL: baseURL))
         let rendered = renderer.visit(document)
         if rendered.length > 0 { return rendered }
         return NSAttributedString(string: "\n", attributes: renderer.textAttributes())
@@ -114,11 +114,15 @@ private struct RichTextStyle {
     }
 }
 
-private struct Renderer: MarkupVisitor {
+private struct RichTextRenderer: MarkupVisitor {
 
     typealias Result = NSAttributedString
 
     let style: RichTextStyle
+
+    init(style: RichTextStyle) {
+        self.style = style
+    }
 
     private var traits: NSFontTraitMask = []
     private var inlineCode = false
@@ -476,7 +480,7 @@ private struct Renderer: MarkupVisitor {
                                alignments: [Table.ColumnAlignment?], header: Bool) -> NSParagraphStyle {
         let block = NSTextTableBlock(table: table, startingRow: row, rowSpan: 1,
                                      startingColumn: column, columnSpan: span)
-        block.verticalAlignment = .top
+        block.verticalAlignment = .topAlignment
         for edge: NSRectEdge in [.minX, .maxX, .minY, .maxY] {
             block.setWidth(0.5, type: .absoluteValueType, for: .border, edge: edge)
             block.setBorderColor(style.border, for: edge)
